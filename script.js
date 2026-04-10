@@ -1180,8 +1180,8 @@ function limpiarHistorialSeguro() {
 
     const confirmacion = confirm("¿ESTÁS SEGURO? Esta acción borrará todas las ventas del día de forma permanente.");
     if (confirmacion) {
-        const claveExtra = prompt("Introduce la clave maestra para confirmar:");
-        if (claveExtra === "9999") {
+        const claveExtra = prompt("Introduce la clave de inventario para confirmar:");
+        if (claveExtra === claveInventario) {
             database.ref('historial_ventas').remove()
                 .then(() => alert("Historial limpiado correctamente."))
                 .catch(err => console.error("Error al borrar:", err));
@@ -1359,34 +1359,6 @@ function agregarProducto() {
         precio: precio
     });
 
-    syncPrecios();
-
-    alert("✅ Producto agregado");
-
-    document.getElementById('nuevo-nombre').value = "";
-    document.getElementById('nuevo-precio').value = "";
-
-    openModule('ajustes');
-}
-function agregarProducto() {
-    const nombre = document.getElementById('nuevo-nombre').value.trim();
-    const precio = parseInt(document.getElementById('nuevo-precio').value);
-    const categoria = document.getElementById('nuevo-categoria').value;
-
-    if (!nombre || !precio) {
-        alert("⚠️ Completa todos los campos");
-        return;
-    }
-
-    if (!DB.menu[categoria]) {
-        DB.menu[categoria] = [];
-    }
-
-    DB.menu[categoria].push({
-        nombre: nombre,
-        precio: precio
-    });
-
     // 🔥 GUARDAR EN FIREBASE
     syncPrecios();
 
@@ -1504,21 +1476,62 @@ function imprimirCierrePizzeria(datos) {
     const fecha = document.getElementById('fecha-impresion');
     if(fecha) fecha.innerText = "F: " + new Date().toLocaleString();
 
-    // Comando final
-    window.print();
+    // Generar texto ESC/POS y enviar a QZ Tray
+    const ESC = "\x1B", GS = "\x1D";
+    let txt = ESC + "@";
+    txt += ESC + "a\x01";
+    txt += "     PAOLO'S PIZZA\n";
+    txt += "-----------------------------\n";
+    txt += ESC + "a\x00";
+
+    if (datos.comida.length > 0) {
+        txt += "--- COMIDA ---\n";
+        datos.comida.forEach(c => {
+            const nom = (c.producto || c.nombre).substring(0, 14).padEnd(14);
+            const val = ("$" + Number(c.cant * c.precio).toLocaleString()).padStart(9);
+            txt += c.cant + "x " + nom + val + "\n";
+        });
+    }
+
+    if (datos.bebidas.length > 0) {
+        txt += "--- BEBIDAS ---\n";
+        datos.bebidas.forEach(b => {
+            const nom = b.nombre.substring(0, 14).padEnd(14);
+            const val = ("$" + Number(b.cant * b.precio).toLocaleString()).padStart(9);
+            txt += b.cant + "x " + nom + val + "\n";
+        });
+    }
+
+    if (datos.gastos.length > 0) {
+        txt += "--- GASTOS ---\n";
+        datos.gastos.forEach(g => {
+            const mot = (g.motivo || "Gasto").substring(0, 14).padEnd(14);
+            const val = ("-$" + Number(g.monto).toLocaleString()).padStart(8);
+            txt += "* " + mot + val + "\n";
+        });
+    }
+
+    txt += "-----------------------------\n";
+    txt += ESC + "a\x01";
+    txt += "EFECTIVO EN CAJA:\n";
+    txt += "$" + Number(datos.totalEfectivo).toLocaleString() + "\n";
+    txt += "F: " + new Date().toLocaleString() + "\n";
+    txt += "\n\n\n";
+    txt += GS + "V\x41";
+
+    imprimirConQZ(txt);
 }
+
 // Función para imprimir comanda de cocina (DG-5811K)
 function imprimirComandaCocina(dest) {
     const items = Cuentas[dest] || [];
     if (items.length === 0) return alert("No hay productos para enviar a cocina");
 
-    // 1. Llenar los datos en el ticket del HTML
     document.getElementById('comanda-n-mesa').innerText = dest;
     document.getElementById('comanda-fecha').innerText = new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
 
     const lista = document.getElementById('comanda-items');
     
-    // Agrupamos los productos para que el cocinero vea la cantidad total
     const grouped = items.reduce((acc, it) => {
         acc[it.nombre] = (acc[it.nombre] || 0) + 1;
         return acc;
@@ -1531,12 +1544,58 @@ function imprimirComandaCocina(dest) {
         </div>
     `).join('');
 
-    // 2. Activar modo comanda y disparar impresión
-    document.body.classList.add('modo-comanda');
-    window.print();
-    
-    // 3. Limpiar después de imprimir
-    setTimeout(() => {
-        document.body.classList.remove('modo-comanda');
-    }, 500);
+    const ESC = "\x1B", GS = "\x1D";
+    let txt = ESC + "@";
+    txt += ESC + "a\x01";
+    txt += "*** COMANDA COCINA ***\n";
+    txt += "MESA: " + dest + "\n";
+    txt += new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}) + "\n";
+    txt += "-----------------------------\n";
+    txt += ESC + "a\x00";
+
+    Object.keys(grouped).forEach(nombre => {
+        const nom = nombre.substring(0, 18).toUpperCase().padEnd(18);
+        txt += nom + "  x" + grouped[nombre] + "\n";
+    });
+
+    txt += "\n\n\n";
+    txt += GS + "V\x41";
+
+    imprimirConQZ(txt);
 }
+
+// =========================================================
+// BLOQUE QZ TRAY — IMPRESIÓN REAL (DG-5811K)
+// =========================================================
+
+async function conectarQZ() {
+    try {
+        if (!qz.websocket.isActive()) {
+            await qz.websocket.connect();
+            console.log("✅ Conectado a QZ Tray");
+        }
+    } catch (err) {
+        console.error("❌ Error QZ:", err);
+        alert("No se pudo conectar con la impresora.\n¿Está QZ Tray abierto en este computador?");
+    }
+}
+
+async function imprimirConQZ(texto) {
+    try {
+        await conectarQZ();
+        const config = qz.configs.create("DG-5811K"); // ← Cambia si el nombre en Windows es diferente
+        const data = [{ type: 'raw', format: 'plain', data: texto }];
+        await qz.print(config, data);
+        console.log("🖨️ Ticket impreso correctamente");
+    } catch (err) {
+        console.error("❌ Error al imprimir:", err);
+        alert("Error al imprimir.\nVerifica que QZ Tray esté activo y el nombre de la impresora sea correcto.");
+    }
+}
+
+// Conectar QZ Tray automáticamente al cargar la página
+window.addEventListener('load', () => {
+    if (typeof qz !== 'undefined') {
+        conectarQZ();
+    }
+});
