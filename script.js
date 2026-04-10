@@ -639,8 +639,11 @@ function updateStatsFilter() {
     } else {
         filtrados.sort((a,b) => b.fecha.localeCompare(a.fecha)).forEach(c => {
             const d = c.detalle || { porciones: 0, pizzas: 0, crepes: 0, lasañas: 0, bebidas: 0 };
+            const btnBorrar = userRole === 'admin'
+                ? `<button onclick="borrarDiaHistorial('${c.id}')" title="Borrar este día" style="background:none; border:none; cursor:pointer; font-size:1rem; color:#ff4444;">🗑️</button>`
+                : '';
             html += `<tr>
-                <td><b>${c.fecha}</b></td>
+                <td><b>${c.fecha}</b>${btnBorrar}</td>
                 <td style="text-align:left; font-size:0.7rem;">
                     🍕 $${(d.porciones || 0).toLocaleString()} | 🥘 $${(d.pizzas || 0).toLocaleString()}<br>
                     🥞 $${(d.crepes || 0).toLocaleString()} | 🍝 $${(d.lasañas || 0).toLocaleString()}<br>
@@ -1311,27 +1314,31 @@ function renderTransferencias(container) {
 }
 
 function borrarHistorial() {
-    limpiarHistorialSeguro();
+    if (userRole !== 'admin') { alert("Solo el administrador puede borrar el historial."); return; }
+    const clave = prompt("Introduce la clave para confirmar:");
+    if (clave !== claveInventario) { alert("Clave incorrecta."); return; }
+    if (!confirm("¿Borrar TODO el historial? Esta acción es permanente.")) return;
+    database.ref('paolos_historial').remove()
+        .then(() => {
+            HistorialCierres = [];
+            alert("Historial borrado correctamente.");
+            updateStatsFilter();
+        })
+        .catch(err => alert("Error al borrar: " + err));
 }
 
-function limpiarHistorialSeguro() {
-    if (userRole !== 'admin') {
-        alert("Acceso denegado. Solo el administrador puede borrar el historial.");
-        return;
-    }
-
-    const confirmacion = confirm("¿ESTÁS SEGURO? Esta acción borrará todas las ventas del día de forma permanente.");
-    if (confirmacion) {
-        const claveExtra = prompt("Introduce la clave de inventario para confirmar:");
-        if (claveExtra === claveInventario) {
-            database.ref('historial_ventas').remove()
-                .then(() => alert("Historial limpiado correctamente."))
-                .catch(err => console.error("Error al borrar:", err));
-        } else {
-            alert("Clave incorrecta.");
-        }
-    }
+function borrarDiaHistorial(id) {
+    if (userRole !== 'admin') { alert("Solo el administrador puede borrar registros."); return; }
+    if (!confirm("¿Borrar este día del historial?")) return;
+    database.ref('paolos_historial/' + id).remove()
+        .then(() => {
+            HistorialCierres = HistorialCierres.filter(c => c.id !== id);
+            updateStatsFilter();
+        })
+        .catch(err => alert("Error al borrar: " + err));
 }
+
+function limpiarHistorialSeguro() { borrarHistorial(); }
 
 // --- MÓDULO DE AJUSTES DE PRECIOS ---
 function renderAjustes(container) {
@@ -1728,7 +1735,7 @@ async function conectarQZ() {
 async function imprimirConQZ(texto) {
     try {
         await conectarQZ();
-        const config = qz.configs.create("DG-5811K"); // ← Cambia esto si el nombre en Windows es diferente
+        const config = qz.configs.create("POS"); // ← Cambia esto si el nombre en Windows es diferente
         const data = [{ type: 'raw', format: 'plain', data: texto }];
         await qz.print(config, data);
         console.log("🖨️ Ticket impreso correctamente");
