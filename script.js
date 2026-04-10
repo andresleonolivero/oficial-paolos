@@ -93,11 +93,13 @@ window.addEventListener('load', () => {
         Gastos = data ? Object.keys(data).map(key => ({ idFirebase: key, ...data[key] })) : [];
         localStorage.setItem('paolos_gastos_turno', JSON.stringify(Gastos));
         
-        // Refrescar UI si el usuario está en el módulo de gastos o caja
         if (document.getElementById('work-area') && !document.getElementById('work-area').classList.contains('hidden')) {
             const title = document.getElementById('module-title').innerText;
             if (title === "OTROS / GASTOS") renderOtros(document.getElementById('module-content'));
-            if (title === "CONTROL DE CAJA (TURNO)") renderVentasDia(document.getElementById('module-content'));
+            // Solo refrescar caja si NO está mostrando el desglose detallado
+            if (title === "CONTROL DE CAJA (TURNO)" && !document.getElementById('module-content').querySelector('h3[style*="a78bfa"]')) {
+                renderVentasDia(document.getElementById('module-content'));
+            }
         }
     });
 
@@ -110,7 +112,14 @@ window.addEventListener('load', () => {
         if (document.getElementById('work-area') && !document.getElementById('work-area').classList.contains('hidden')) {
             const title = document.getElementById('module-title').innerText;
             if (title === "REPORTES TRANSFERENCIAS") renderTransferencias(document.getElementById('module-content'));
-            if (title === "CONTROL DE CAJA (TURNO)") renderVentasDia(document.getElementById('module-content'));
+            // No refrescar caja si admin está viendo el desglose detallado
+            if (title === "CONTROL DE CAJA (TURNO)" && !viendoDesglose) {
+                renderVentasDia(document.getElementById('module-content'));
+            }
+            // Si está en desglose, actualizar los datos silenciosamente sin salirse
+            if (title === "CONTROL DE CAJA (TURNO)" && viendoDesglose) {
+                renderDesgloseDetallado();
+            }
         }
     });
 
@@ -155,12 +164,16 @@ window.addEventListener('load', () => {
         // Refrescar UI si el usuario está en el módulo de caja
         if (document.getElementById('work-area') && !document.getElementById('work-area').classList.contains('hidden')) {
             const title = document.getElementById('module-title').innerText;
-            if (title === "CONTROL DE CAJA (TURNO)") renderVentasDia(document.getElementById('module-content'));
+            if (title === "CONTROL DE CAJA (TURNO)" && !document.getElementById('module-content').querySelector('h3[style*="a78bfa"]')) {
+                renderVentasDia(document.getElementById('module-content'));
+            }
         }
     });
 });
 
 function cerrarSesion() {
+    sesionInventarioToken = null;
+    viendoDesglose = false;
     localStorage.removeItem('token_paolos');
     location.reload();
 }
@@ -234,6 +247,7 @@ let Cuentas = JSON.parse(localStorage.getItem('paolos_cuentas')) || {};
 let VentasHistoricas = JSON.parse(localStorage.getItem('paolos_ventas_turno')) || []; 
 let Gastos = JSON.parse(localStorage.getItem('paolos_gastos_turno')) || []; 
 let metodoPagoSeleccionado = 'Efectivo'; 
+let viendoDesglose = false; // Flag para saber si admin está en desglose detallado
 
 // --- ESTADO DE CAJA E HISTORIAL RECUPERABLE ---
 let cajaAbierta = localStorage.getItem('paolos_caja_abierta') === 'true';
@@ -326,6 +340,7 @@ function openModule(tipo) {
 }
 
 function showMenu() { 
+    inventarioDesbloqueado = false; // Resetear acceso al salir
     document.getElementById('work-area').classList.add('hidden'); 
     document.getElementById('module-selector').classList.remove('hidden'); 
     document.getElementById('btn-back-tables').classList.add('hidden');
@@ -424,6 +439,7 @@ function renderVentasDia(container) {
 }
 
 function renderDesgloseDetallado() {
+    viendoDesglose = true;
     const container = document.getElementById('module-content');
 
     // Contar cada producto vendido
@@ -452,8 +468,9 @@ function renderDesgloseDetallado() {
         <div class="glass-card" style="margin-bottom:15px; border-left:5px solid #7c3aed;">
             <div style="display:flex; justify-content:space-between; align-items:center;">
                 <h3 style="color:#a78bfa;">📊 DESGLOSE DETALLADO</h3>
-                <button class="btn-action" style="background:#333; padding:5px 12px;" onclick="openModule('ventas-dia')">← VOLVER</button>
+                <button class="btn-action" style="background:#333; padding:5px 12px;" onclick="viendoDesglose=false; openModule('ventas-dia')">← VOLVER</button>
             </div>
+            <small style="opacity:0.5;">Se actualiza automáticamente con cada venta</small>
         </div>`;
 
     if (Object.keys(grupos).length === 0) {
@@ -468,7 +485,7 @@ function renderDesgloseDetallado() {
                     <h4 class="accent">${icono} ${cat.toUpperCase()}</h4>
                     <span style="color:var(--success); font-weight:bold;">$${totalCat.toLocaleString()}</span>
                 </div>
-                <table style="font-size:0.85rem;">
+                <table style="font-size:0.85rem; width:100%;">
                     <thead><tr><th style="text-align:left;">Producto</th><th>Cant.</th><th>Total</th></tr></thead>
                     <tbody>`;
             items.sort((a, b) => b.cantidad - a.cantidad).forEach(item => {
@@ -994,10 +1011,17 @@ function sellBebida(dest, pId) {
 
 // --- INVENTARIO ---
 // Clave de acceso para que ventas pueda modificar bebidas (configurable desde admin)
-let claveInventario = "0000"; // Se sobreescribe con lo que esté en Firebase
+let claveInventario = "0000";
+let sesionInventarioToken = null; // Token de sesión: se invalida si cambia la clave
 
 database.ref('config_clave_inv').on('value', (snap) => {
-    if (snap.val()) claveInventario = snap.val();
+    if (snap.val() && snap.val() !== claveInventario) {
+        claveInventario = snap.val();
+        sesionInventarioToken = null; // Clave cambió → cerrar sesión de inventario
+        console.log("🔑 Clave de inventario actualizada, sesión invalidada");
+    } else if (snap.val()) {
+        claveInventario = snap.val();
+    }
 });
 
 function abrirInventarioConClave(container, t) {
@@ -1005,45 +1029,73 @@ function abrirInventarioConClave(container, t) {
         renderInventory(container, t);
         return;
     }
+
+    // Verificar si la sesión de inventario es válida para esta clave
+    if (sesionInventarioToken === claveInventario) {
+        renderInventory(container, t);
+        return;
+    }
+
+    // Pedir clave — si cancela, vuelve al menú sin mostrar nada
     const clave = prompt("🔒 Ingresa la clave para modificar inventario:");
-    if (clave === null) return;
+    if (clave === null || clave.trim() === '') {
+        showMenu();
+        return;
+    }
     if (clave === claveInventario) {
+        sesionInventarioToken = claveInventario; // Guardar token de sesión
         renderInventory(container, t);
     } else {
         alert("❌ Clave incorrecta.");
+        showMenu(); // Clave mala → regresa al menú, no muestra nada
     }
 }
 
 function renderInventory(container, t) {
     const data = DB[t];
     let html = `
-        <div class="inventory-form glass-card" style="display:grid; grid-template-columns: 2fr 1fr 1fr auto; gap:5px;">
-            <input type="text" id="inv-n" placeholder="Producto">
-            <input type="number" id="inv-c" placeholder="Stock">
-            <input type="number" id="inv-p" placeholder="Precio $">
-            <button class="btn-nav neon-btn" onclick="addToInventory('${t}')">+</button>
+        <div class="glass-card" style="margin-bottom:12px;">
+            <div style="display:flex; flex-wrap:wrap; gap:8px; align-items:center;">
+                <input type="text" id="inv-n" placeholder="Producto" class="inv-input-inline" style="flex:2; min-width:100px;">
+                <input type="number" id="inv-c" placeholder="Stock" class="inv-input-inline" style="flex:1; min-width:60px;">
+                <input type="number" id="inv-p" placeholder="Precio $" class="inv-input-inline" style="flex:1; min-width:70px;">
+                <button class="btn-nav neon-btn" onclick="addToInventory('${t}')" style="flex:none;">+</button>
+            </div>
         </div>
-        <table>
-            <thead>
-                <tr>
-                    <th>Item</th>
-                    <th>Stock</th>
-                    <th>Precio</th>
-                    <th>Acción</th>
-                </tr>
-            </thead>
-            <tbody>`;
-    data.forEach((item, idx) => {
-        const esAlerta = item.cantidad <= (item.stock_minimo || 5);
-        html += `
-            <tr class="${esAlerta ? 'alerta-stock' : ''}">
-                <td>${item.nombre} ${esAlerta ? '<span class="badge-reabastecer">⚠️ REABASTECER</span>' : ''}</td>
-                <td><input type="number" class="inv-input-inline" value="${item.cantidad}" onchange="updateInvField('${t}', ${idx}, 'cantidad', this.value)"></td>
-                <td><input type="number" class="inv-input-inline" value="${item.precio || 0}" onchange="updateInvField('${t}', ${idx}, 'precio', this.value)"></td>
-                <td><button class="btn-del" onclick="deleteFromInv('${t}', ${idx})">🗑️</button></td>
-            </tr>`;
-    });
-    container.innerHTML = html + `</tbody></table>`;
+        <div style="display:flex; flex-direction:column; gap:8px;">`;
+
+    if (!data || data.length === 0) {
+        html += `<div class="glass-card" style="text-align:center; opacity:0.5; padding:20px;">Sin productos en inventario</div>`;
+    } else {
+        data.forEach((item, idx) => {
+            const esAlerta = item.cantidad <= (item.stock_minimo || 5);
+            html += `
+            <div class="glass-card" style="${esAlerta ? 'border-left:4px solid var(--warning, orange);' : 'border-left:4px solid #333;'} padding:10px;">
+                <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
+                    <div style="flex:1; min-width:100px;">
+                        <b style="font-size:0.95rem;">${item.nombre}</b>
+                        ${esAlerta ? '<span class="badge-reabastecer" style="display:block; font-size:0.7rem; color:orange; margin-top:2px;">⚠️ REABASTECER</span>' : ''}
+                    </div>
+                    <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
+                        <div style="display:flex; flex-direction:column; align-items:center;">
+                            <small style="opacity:0.6; font-size:0.65rem;">STOCK</small>
+                            <input type="number" class="inv-input-inline" value="${item.cantidad}" 
+                                style="width:60px; text-align:center;"
+                                onchange="updateInvField('${t}', ${idx}, 'cantidad', this.value)">
+                        </div>
+                        <div style="display:flex; flex-direction:column; align-items:center;">
+                            <small style="opacity:0.6; font-size:0.65rem;">PRECIO</small>
+                            <input type="number" class="inv-input-inline" value="${item.precio || 0}" 
+                                style="width:75px; text-align:center;"
+                                onchange="updateInvField('${t}', ${idx}, 'precio', this.value)">
+                        </div>
+                        <button class="btn-del" onclick="deleteFromInv('${t}', ${idx})">🗑️</button>
+                    </div>
+                </div>
+            </div>`;
+        });
+    }
+    container.innerHTML = html + `</div>`;
 }
 
 function updateInvField(t, idx, field, v) { 
