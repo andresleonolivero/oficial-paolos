@@ -183,10 +183,13 @@ function cerrarSesion() {
 let DB = {
     menu: {
         pizzas_completa: [
-            { nombre: "Pizza Grande (16 Porc.)", precio: 85000 },
-            { nombre: "Pizza Mediana (12 Porc.)", precio: 62000 },
-            { nombre: "Pizza Pequeña (8 Porc.)", precio: 50000 },
-            { nombre: "Pizza Mini (6 Porc.)", precio: 32000 }
+            // precio_esp = precio si todos los sabores son especialidad (o mix con especialidad)
+            // precio_trad = precio si TODOS los sabores son tradicionales
+            // La lógica cobra Math.max de los sabores seleccionados, estos valores son solo referencia para el admin
+            { nombre: "Pizza Grande (16 Porc.)",  precio_esp: 85000, precio_trad: 75000 },
+            { nombre: "Pizza Mediana (12 Porc.)", precio_esp: 62000, precio_trad: 57000 },
+            { nombre: "Pizza Pequeña (8 Porc.)",  precio_esp: 50000, precio_trad: 40000 },
+            { nombre: "Pizza Mini (6 Porc.)",     precio_esp: 32000, precio_trad: 28000 }
         ],
         crepes: [
             { nombre: "Crepe Paolos",   precio: 30000 },
@@ -219,24 +222,37 @@ let DB = {
         bebidas: [] 
     },
     sabores_pizzas: [
-        { id: 1, nombre: "Peperoni Picante", precio: 7000 },
-        { id: 2, nombre: "Marinera", precio: 7000 },
-        { id: 3, nombre: "Mexicana", precio: 7000 },
-        { id: 4, nombre: "Camarón y Pollo", precio: 7000 },
-        { id: 5, nombre: "BBQ", precio: 7000 },
-        { id: 6, nombre: "Carnes", precio: 7000 },
-        { id: 7, nombre: "Pollo", precio: 7000 },
-        { id: 8, nombre: "Maíz Tocineta", precio: 7000 },
-        { id: 9, nombre: "Tropical", precio: 7000 },
-        { id: 10, nombre: "De la Huerta", precio: 7000 },
-        { id: 11, nombre: "Romana", precio: 7000 },
-        { id: 12, nombre: "Salami", precio: 7000 },
-        { id: 13, nombre: "Pollo Miel Mostaza", precio: 7000 },
-        { id: 14, nombre: "Hawaiana", precio: 7000 },
-        { id: 15, nombre: "Pollo Champiñones", precio: 7000 },
-        { id: 16, nombre: "Napolitana", precio: 7000 },
-        { id: 17, nombre: "Jamón Pollo", precio: 7000 },
-        { id: 18, nombre: "Vegetariana", precio: 7000 }
+        // ESPECIALIDADES: Mini $32k / Pequeña $50k / Mediana $62k / Grande $85k
+        { id: 1,  nombre: "Peperoni Picante",   tipo: "especialidad", precio_mini: 32000, precio_p: 50000, precio_m: 62000, precio_g: 85000, precio: 7000 },
+        { id: 2,  nombre: "Marinera",            tipo: "especialidad", precio_mini: 32000, precio_p: 50000, precio_m: 62000, precio_g: 85000, precio: 7000 },
+        { id: 3,  nombre: "Mexicana",            tipo: "especialidad", precio_mini: 32000, precio_p: 50000, precio_m: 62000, precio_g: 85000, precio: 7000 },
+        { id: 4,  nombre: "Camarón y Pollo",     tipo: "especialidad", precio_mini: 32000, precio_p: 50000, precio_m: 62000, precio_g: 85000, precio: 7000 },
+        { id: 5,  nombre: "BBQ",                 tipo: "especialidad", precio_mini: 32000, precio_p: 50000, precio_m: 62000, precio_g: 85000, precio: 7000 },
+        { id: 6,  nombre: "Carnes",              tipo: "especialidad", precio_mini: 32000, precio_p: 50000, precio_m: 62000, precio_g: 85000, precio: 7000 },
+        { id: 7,  nombre: "Maíz Tocineta",       tipo: "especialidad", precio_mini: 32000, precio_p: 50000, precio_m: 62000, precio_g: 85000, precio: 7000 },
+        { id: 8,  nombre: "Tropical",            tipo: "especialidad", precio_mini: 32000, precio_p: 50000, precio_m: 62000, precio_g: 85000, precio: 7000 },
+        { id: 9,  nombre: "De la Huerta",        tipo: "especialidad", precio_mini: 32000, precio_p: 50000, precio_m: 62000, precio_g: 85000, precio: 7000 },
+        { id: 10, nombre: "Romana",              tipo: "especialidad", precio_mini: 32000, precio_p: 50000, precio_m: 62000, precio_g: 85000, precio: 7000 },
+        { id: 11, nombre: "Salami",              tipo: "especialidad", precio_mini: 32000, precio_p: 50000, precio_m: 62000, precio_g: 85000, precio: 7000 },
+        { id: 12, nombre: "Supercarnes",         tipo: "especialidad", precio_mini: 32000, precio_p: 50000, precio_m: 62000, precio_g: 85000, precio: 7000 },
+        { id: 13, nombre: "Paolos",              tipo: "especialidad", precio_mini: 32000, precio_p: 50000, precio_m: 62000, precio_g: 85000, precio: 7000 },
+        { id: 14, nombre: "Super",               tipo: "especialidad", precio_mini: 32000, precio_p: 50000, precio_m: 62000, precio_g: 85000, precio: 7000 },
+        { id: 15, nombre: "Alcaldesa",           tipo: "especialidad", precio_mini: 32000, precio_p: 50000, precio_m: 62000, precio_g: 85000, precio: 7000 },
+        { id: 16, nombre: "Diputado",            tipo: "especialidad", precio_mini: 32000, precio_p: 50000, precio_m: 62000, precio_g: 85000, precio: 7000 },
+        { id: 17, nombre: "UFO",                 tipo: "especialidad", precio_mini: 32000, precio_p: 50000, precio_m: 62000, precio_g: 85000, precio: 7000 },
+        { id: 18, nombre: "Rumbera",             tipo: "especialidad", precio_mini: 32000, precio_p: 50000, precio_m: 62000, precio_g: 85000, precio: 7000 },
+        { id: 19, nombre: "Caribeña",            tipo: "especialidad", precio_mini: 32000, precio_p: 50000, precio_m: 62000, precio_g: 85000, precio: 7000 },
+        { id: 20, nombre: "Pollo Maíz Tocineta", tipo: "especialidad", precio_mini: 32000, precio_p: 50000, precio_m: 62000, precio_g: 85000, precio: 7000 },
+        // TRADICIONALES: Mini $28k / Pequeña $40k / Mediana $57k / Grande $75k
+        { id: 21, nombre: "Hawaiana",            tipo: "tradicional",  precio_mini: 28000, precio_p: 40000, precio_m: 57000, precio_g: 75000, precio: 7000 },
+        { id: 22, nombre: "Pollo Champiñones",   tipo: "tradicional",  precio_mini: 28000, precio_p: 40000, precio_m: 57000, precio_g: 75000, precio: 7000 },
+        { id: 23, nombre: "Pollo Jamón",         tipo: "tradicional",  precio_mini: 28000, precio_p: 40000, precio_m: 57000, precio_g: 75000, precio: 7000 },
+        { id: 24, nombre: "Pollo Tocineta",      tipo: "tradicional",  precio_mini: 28000, precio_p: 40000, precio_m: 57000, precio_g: 75000, precio: 7000 },
+        { id: 25, nombre: "Napolitana",          tipo: "tradicional",  precio_mini: 28000, precio_p: 40000, precio_m: 57000, precio_g: 75000, precio: 7000 },
+        { id: 26, nombre: "Vegetariana",         tipo: "tradicional",  precio_mini: 28000, precio_p: 40000, precio_m: 57000, precio_g: 75000, precio: 7000 },
+        { id: 27, nombre: "Bocadillo y Queso",   tipo: "tradicional",  precio_mini: 28000, precio_p: 40000, precio_m: 57000, precio_g: 75000, precio: 7000 },
+        { id: 28, nombre: "Pollo Miel Mostaza",  tipo: "tradicional",  precio_mini: 28000, precio_p: 40000, precio_m: 57000, precio_g: 75000, precio: 7000 },
+        { id: 29, nombre: "Jamón Pollo",         tipo: "tradicional",  precio_mini: 28000, precio_p: 40000, precio_m: 57000, precio_g: 75000, precio: 7000 }
     ],
     bebidas_inv: [] 
 };
@@ -277,7 +293,15 @@ database.ref('config_precios').on('value', (snapshot) => {
     const data = snapshot.val();
     if (data) {
         if (data.menu) DB.menu = data.menu;
-        if (data.sabores) DB.sabores_pizzas = data.sabores;
+        if (data.sabores) {
+            // Asegurar que cada sabor tenga los precios por tamaño según su tipo
+            const preciosEsp  = { precio_mini: 32000, precio_p: 50000, precio_m: 62000, precio_g: 85000 };
+            const preciosTrad = { precio_mini: 28000, precio_p: 40000, precio_m: 57000, precio_g: 75000 };
+            DB.sabores_pizzas = data.sabores.map(s => {
+                const defaults = s.tipo === 'especialidad' ? preciosEsp : preciosTrad;
+                return Object.assign({}, defaults, s);
+            });
+        }
     }
 });
 
@@ -724,7 +748,7 @@ function filterItems(dest) {
                 else {
                     const nombreEscapado = p.nombre.replace(/'/g, "\\'");
                     const action = (catKey === 'pizzas_completa') ? 
-                        `onclick="renderPizzaFlavorSelector('${dest}', '${nombreEscapado}', ${p.precio})"` : 
+                        `onclick="renderPizzaFlavorSelector('${dest}')"` : 
                         `onclick="addItemToOrder('${dest}', '${nombreEscapado}', ${p.precio})"`;
                     
                     html += `
@@ -780,9 +804,10 @@ function renderProductsByCategory(cat, dest) {
 
             // 🍕 PIZZAS COMPLETAS
             if (cat === 'pizzas_completa') {
+                const tamClave = p.nombre.includes('Mini') ? 'mini' : p.nombre.includes('Pequeña') ? 'p' : p.nombre.includes('Mediana') ? 'm' : 'g';
                 html += `<div class="product-card">
                     <h4>${p.nombre}</h4>
-                    <button class="btn-action" onclick="renderPizzaFlavorSelector('${dest}', '${p.nombre}', ${p.precio})">
+                    <button class="btn-action" onclick="renderPizzaFlavorSelector('${dest}', '${tamClave}')">
                         SABORES
                     </button>
                 </div>`;
@@ -843,31 +868,148 @@ else if (cat === 'panzerottis') {
 }
 
 // --- SABORES Y PORCIONES ---
-function renderPizzaFlavorSelector(dest, pizzaN, precio) {
+// =====================================================
+// SELECTOR DE PIZZAS COMPLETAS — con tamaño y precio
+// =====================================================
+
+// Precios fijos por tipo y tamaño (fuente de verdad)
+// Precios según tipo de sabor y tamaño
+function getPrecioSabor(sabor, tamano) {
+    const p = sabor.tipo === 'tradicional'
+        ? { mini: 28000, p: 40000, m: 57000, g: 75000 }
+        : { mini: 32000, p: 50000, m: 62000, g: 85000 };
+    return p[tamano] || 0;
+}
+
+function renderPizzaFlavorSelector(dest, tamano) {
     const container = document.getElementById('product-list-container');
-    const nombreEscapado = pizzaN.replace(/'/g, "\\'");
-    let html = `<div class="flavor-selection-box"><h4 class="accent">${pizzaN}</h4><div class="flavor-list">`;
-    DB.sabores_pizzas.forEach(s => {
-        html += `<div class="flavor-item-check"><input type="checkbox" id="ps-${s.id}" value="${s.nombre}" class="pizza-flavor-cb"><label for="ps-${s.id}">${s.nombre}</label></div>`;
+    window._pizzaTamano = tamano;
+    window._pizzaSeleccionados = [];
+
+    const sabores = [
+        { id: 21, nombre: "Hawaiana",            tipo: "tradicional" },
+        { id: 22, nombre: "Pollo Champiñones",   tipo: "tradicional" },
+        { id: 23, nombre: "Pollo Jamón",         tipo: "tradicional" },
+        { id: 24, nombre: "Pollo Tocineta",      tipo: "tradicional" },
+        { id: 7,  nombre: "Maíz Tocineta",       tipo: "tradicional" },
+        { id: 25, nombre: "Napolitana",          tipo: "tradicional" },
+        { id: 26, nombre: "Vegetariana",         tipo: "tradicional" },
+        { id: 27, nombre: "Bocadillo y Queso",   tipo: "tradicional" },
+        { id: 28, nombre: "Pollo Miel Mostaza",  tipo: "tradicional" },
+        { id: 6,  nombre: "Carnes",              tipo: "especialidad" },
+        { id: 12, nombre: "Supercarnes",         tipo: "especialidad" },
+        { id: 13, nombre: "Paolos",              tipo: "especialidad" },
+        { id: 14, nombre: "Super",               tipo: "especialidad" },
+        { id: 15, nombre: "Alcaldesa",           tipo: "especialidad" },
+        { id: 16, nombre: "Diputado",            tipo: "especialidad" },
+        { id: 8,  nombre: "Tropical",            tipo: "especialidad" },
+        { id: 17, nombre: "UFO",                 tipo: "especialidad" },
+        { id: 3,  nombre: "Mexicana",            tipo: "especialidad" },
+        { id: 2,  nombre: "Marinera",            tipo: "especialidad" },
+        { id: 5,  nombre: "BBQ",                 tipo: "especialidad" },
+        { id: 10, nombre: "Romana",              tipo: "especialidad" },
+        { id: 18, nombre: "Rumbera",             tipo: "especialidad" },
+        { id: 19, nombre: "Caribeña",            tipo: "especialidad" },
+        { id: 9,  nombre: "De la Huerta",        tipo: "especialidad" },
+        { id: 20, nombre: "Pollo Maíz Tocineta", tipo: "especialidad" },
+        { id: 4,  nombre: "Pollo Camarón",       tipo: "especialidad" },
+        { id: 1,  nombre: "Peperoni Picante",    tipo: "especialidad" },
+    ];
+    window._pizzaSaboresLista = sabores;
+
+    const tamNombre = { mini: 'Mini (6p)', p: 'Pequeña (8p)', m: 'Mediana (12p)', g: 'Grande (16p)' }[tamano];
+
+    let html = `<div style="padding:10px;">
+        <h4 class="accent" style="margin-bottom:4px;">🍕 ${tamNombre} — ELIGE SABOR(ES)</h4>
+        <p style="font-size:0.75rem; opacity:0.7; margin-bottom:10px;">Máx. 3 sabores. 3ro suma $3.000. Se cobra el más caro.</p>
+        <div id="pizza-preview" style="text-align:center; font-weight:bold; color:var(--accent); margin-bottom:10px; min-height:22px;"></div>
+        <div class="flavor-list">`;
+
+    sabores.forEach(s => {
+        const precio = getPrecioSabor(s, tamano);
+        html += `<div class="flavor-item" id="pf-row-${s.id}" onclick="togglePizzaSabor(${s.id})" style="cursor:pointer;">
+            <div><h4>${s.nombre}</h4><span class="accent">$${precio.toLocaleString()}</span></div>
+            <div class="flavor-qty">
+                <button id="pf-btn-${s.id}" style="background:var(--glass); border:1px solid var(--border); border-radius:50%; width:32px; height:32px; font-size:1rem; cursor:pointer; pointer-events:none;">○</button>
+            </div>
+        </div>`;
     });
-    html += `</div><button class="btn-action" onclick="confirmarPizzaCompleta('${dest}', '${nombreEscapado}', ${precio})">CONFIRMAR SABORES</button></div>`;
+
+    html += `</div>
+        <button class="btn-action" style="width:100%; margin-top:10px; background:var(--success); color:#000; font-weight:bold;"
+            onclick="confirmarPizzaCompleta('${dest}')">✅ CONFIRMAR PIZZA</button>
+    </div>`;
+
     container.innerHTML = html;
 }
 
-function confirmarPizzaCompleta(dest, pizzaN, precio) {
-    const sel = Array.from(document.querySelectorAll('.pizza-flavor-cb:checked')).map(cb => cb.value);
-    if (sel.length === 0 || sel.length > 2) { 
-        alert("Elige 1 o 2 sabores."); 
-        return; 
+
+function togglePizzaSabor(id) {
+    const sel = window._pizzaSeleccionados || [];
+    const idx = sel.indexOf(id);
+    const btn = document.getElementById('pf-btn-' + id);
+    const row = document.getElementById('pf-row-' + id);
+    if (idx > -1) {
+        window._pizzaSeleccionados.splice(idx, 1);
+        if (btn) { btn.style.background = 'var(--glass)'; btn.style.color = ''; btn.textContent = '○'; }
+        if (row) row.style.background = '';
+    } else {
+        if (sel.length >= 3) { alert('Máximo 3 sabores por pizza.'); return; }
+        window._pizzaSeleccionados.push(id);
+        if (btn) { btn.style.background = 'var(--accent)'; btn.style.color = '#000'; btn.textContent = '✓'; }
+        if (row) row.style.background = 'rgba(255,180,0,0.07)';
     }
-    addItemToOrder(dest, `${pizzaN} (${sel.join("/")})`, precio, 'pizzas');
+    actualizarPreviewPizza();
 }
+
+function actualizarPreviewPizza() {
+    const t = window._pizzaTamano;
+    const lista = window._pizzaSaboresLista || [];
+    const sel = (window._pizzaSeleccionados || []).map(id => lista.find(s => s.id === id)).filter(Boolean);
+    const prev = document.getElementById('pizza-preview');
+    if (!prev) return;
+    if (sel.length === 0) { prev.innerText = ''; return; }
+    const precioBase = Math.max(...sel.map(s => getPrecioSabor(s, t)));
+    const precio = sel.length === 3 ? precioBase + 3000 : precioBase;
+    const extra = sel.length === 3 ? ' (+$3.000)' : '';
+    prev.innerText = sel.map(s => s.nombre).join(' / ') + '  →  $' + precio.toLocaleString() + extra;
+}
+
+function confirmarPizzaCompleta(dest) {
+    const t = window._pizzaTamano;
+    if (!t) { alert('⚠️ Elige un tamaño primero.'); return; }
+    const lista = window._pizzaSaboresLista || [];
+    const sel = (window._pizzaSeleccionados || []).map(id => lista.find(s => s.id === id)).filter(Boolean);
+    if (sel.length === 0) { alert('⚠️ Elige al menos 1 sabor.'); return; }
+    const precioBase = Math.max(...sel.map(s => getPrecioSabor(s, t)));
+    const precio = sel.length === 3 ? precioBase + 3000 : precioBase;
+    const tamNombre = { mini: 'Mini', p: 'Pequeña', m: 'Mediana', g: 'Grande' }[t];
+    addItemToOrder(dest, 'Pizza ' + tamNombre + ' ' + sel.map(s => s.nombre).join('/'), precio, 'pizzas');
+    window._pizzaTamano = null;
+    window._pizzaSabores = {};
+}
+
+
+
+
+
+
+
+// =====================================================
+// SELECTOR DE PORCIONES — precio $7.000 c/u
+// =====================================================
 
 function renderFlavorSelector(container, dest) {
     let html = `<div class="flavor-list">`;
     DB.sabores_pizzas.forEach(s => {
-        html += `<div class="flavor-item"><div><h4>${s.nombre}</h4><span class="accent">$${s.precio.toLocaleString()}</span></div>
-            <div class="flavor-qty"><button onclick="updateFlavorQty(${s.id}, -1)">-</button><span id="f-${s.id}">0</span><button onclick="updateFlavorQty(${s.id}, 1)">+</button></div></div>`;
+        html += `<div class="flavor-item">
+            <div><h4>${s.nombre}</h4><span class="accent">$${s.precio.toLocaleString()}</span></div>
+            <div class="flavor-qty">
+                <button onclick="updateFlavorQty(${s.id}, -1)">-</button>
+                <span id="f-${s.id}">0</span>
+                <button onclick="updateFlavorQty(${s.id}, 1)">+</button>
+            </div>
+        </div>`;
     });
     container.innerHTML = html + `</div><button class="btn-action" onclick="savePortions('${dest}')">CONFIRMAR PORCIONES</button>`;
 }
@@ -1215,15 +1357,17 @@ function renderAjustes(container) {
     html += `</table>`;
 
     // 🍕 PIZZAS COMPLETAS
-    html += `<hr><h3 class="accent">🥘 PIZZAS COMPLETAS</h3><table>`;
+    html += `<hr><h3 class="accent">🥘 PIZZAS COMPLETAS</h3>
+    <p style="font-size:0.75rem; opacity:0.7; margin-bottom:8px;">⚠️ El precio cobrado es siempre el más alto entre los sabores elegidos (especialidad vs tradicional).</p>
+    <table><tr><th>Tamaño</th><th>Especialidad</th><th>Tradicional</th></tr>`;
     DB.menu.pizzas_completa.forEach((p, idx) => {
         html += `
         <tr>
             <td>${p.nombre}</td>
-            <td>
-                <input type="number" value="${p.precio}" class="inv-input-inline"
-                onchange="DB.menu.pizzas_completa[${idx}].precio = parseInt(this.value); syncPrecios();">
-            </td>
+            <td><input type="number" value="${p.precio_esp}" class="inv-input-inline" style="width:70px;"
+                onchange="DB.menu.pizzas_completa[${idx}].precio_esp = parseInt(this.value); syncPrecios();"></td>
+            <td><input type="number" value="${p.precio_trad}" class="inv-input-inline" style="width:70px;"
+                onchange="DB.menu.pizzas_completa[${idx}].precio_trad = parseInt(this.value); syncPrecios();"></td>
         </tr>`;
     });
     html += `</table>`;
@@ -1478,11 +1622,11 @@ function imprimirCierrePizzeria(datos) {
 
     // Generar texto ESC/POS y enviar a QZ Tray
     const ESC = "\x1B", GS = "\x1D";
-    let txt = ESC + "@";
-    txt += ESC + "a\x01";
+    let txt = ESC + "@";                          // Inicializar impresora
+    txt += ESC + "a\x01";                         // Centrar
     txt += "     PAOLO'S PIZZA\n";
     txt += "-----------------------------\n";
-    txt += ESC + "a\x00";
+    txt += ESC + "a\x00";                         // Alinear izquierda
 
     if (datos.comida.length > 0) {
         txt += "--- COMIDA ---\n";
@@ -1512,26 +1656,27 @@ function imprimirCierrePizzeria(datos) {
     }
 
     txt += "-----------------------------\n";
-    txt += ESC + "a\x01";
+    txt += ESC + "a\x01";                         // Centrar
     txt += "EFECTIVO EN CAJA:\n";
     txt += "$" + Number(datos.totalEfectivo).toLocaleString() + "\n";
     txt += "F: " + new Date().toLocaleString() + "\n";
     txt += "\n\n\n";
-    txt += GS + "V\x41";
+    txt += GS + "V\x41";                          // Cortar papel
 
     imprimirConQZ(txt);
 }
-
 // Función para imprimir comanda de cocina (DG-5811K)
 function imprimirComandaCocina(dest) {
     const items = Cuentas[dest] || [];
     if (items.length === 0) return alert("No hay productos para enviar a cocina");
 
+    // 1. Llenar los datos en el ticket del HTML
     document.getElementById('comanda-n-mesa').innerText = dest;
     document.getElementById('comanda-fecha').innerText = new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
 
     const lista = document.getElementById('comanda-items');
     
+    // Agrupamos los productos para que el cocinero vea la cantidad total
     const grouped = items.reduce((acc, it) => {
         acc[it.nombre] = (acc[it.nombre] || 0) + 1;
         return acc;
@@ -1544,14 +1689,15 @@ function imprimirComandaCocina(dest) {
         </div>
     `).join('');
 
+    // 2. Generar texto ESC/POS y enviar a QZ Tray
     const ESC = "\x1B", GS = "\x1D";
     let txt = ESC + "@";
-    txt += ESC + "a\x01";
+    txt += ESC + "a\x01";                         // Centrar
     txt += "*** COMANDA COCINA ***\n";
     txt += "MESA: " + dest + "\n";
     txt += new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}) + "\n";
     txt += "-----------------------------\n";
-    txt += ESC + "a\x00";
+    txt += ESC + "a\x00";                         // Izquierda
 
     Object.keys(grouped).forEach(nombre => {
         const nom = nombre.substring(0, 18).toUpperCase().padEnd(18);
@@ -1559,11 +1705,10 @@ function imprimirComandaCocina(dest) {
     });
 
     txt += "\n\n\n";
-    txt += GS + "V\x41";
+    txt += GS + "V\x41";                          // Cortar papel
 
     imprimirConQZ(txt);
 }
-
 // =========================================================
 // BLOQUE QZ TRAY — IMPRESIÓN REAL (DG-5811K)
 // =========================================================
@@ -1583,7 +1728,7 @@ async function conectarQZ() {
 async function imprimirConQZ(texto) {
     try {
         await conectarQZ();
-        const config = qz.configs.create("DG-5811K"); // ← Cambia si el nombre en Windows es diferente
+        const config = qz.configs.create("DG-5811K"); // ← Cambia esto si el nombre en Windows es diferente
         const data = [{ type: 'raw', format: 'plain', data: texto }];
         await qz.print(config, data);
         console.log("🖨️ Ticket impreso correctamente");
