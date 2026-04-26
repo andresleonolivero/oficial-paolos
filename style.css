@@ -145,130 +145,13 @@ th { background: #000; color: var(--accent); font-size: 0.75rem; text-transform:
 .search-result { border-style: dashed; animation: fadeIn 0.3s ease; }
 .search-result small { display: block; margin-bottom: 5px; font-size: 0.65rem; color: #fff; opacity: 0.8; letter-spacing: 1px; }
 
-/* --- INVENTARIO --- */
-.inventory-form { 
-    background: #1a1f26; 
-    padding: 15px; 
-    border-radius: 8px; 
-    margin: 20px; 
-    display: grid; 
-    grid-template-columns: 2fr 1fr 1fr auto; 
-    gap: 10px; 
-}
-@media (max-width: 500px) { .inventory-form { grid-template-columns: 1fr; } }
-.inventory-form input { 
-    background: #0a0c10; 
-    border: 1px solid var(--border); 
-    color: white; 
-    padding: 12px; 
-    border-radius: 6px; 
-    outline: none; 
-}
-
-table { 
-    width: 95%; 
-    margin: auto; 
-    border-collapse: collapse; 
-    background: var(--card-bg); 
-    border-radius: 8px; 
-    overflow: hidden; 
-}
-th, td { 
-    padding: 12px; 
-    text-align: left; 
-    border-bottom: 1px solid var(--border); 
-    font-size: 0.9rem; 
-    color: #ffffff; /* Texto de tabla en blanco */
-}
-th { 
-    background: #000; 
-    color: var(--accent); 
-    font-size: 0.75rem; 
-    text-transform: uppercase; 
-    letter-spacing: 1px; 
-}
-
-/* --- BOTONES Y EFECTOS --- */
-.btn-action { 
-    width: 100%; 
-    background: transparent; 
-    border: 1px solid var(--accent); 
-    color: var(--accent); 
-    padding: 14px; 
-    font-weight: bold; 
-    cursor: pointer; 
-    border-radius: 6px; 
-    text-transform: uppercase; 
-    margin-top: 30px; 
-    transition: 0.2s; 
-    font-family: 'Orbitron', sans-serif;
-    letter-spacing: 2px;
-    font-size: 0.8rem;
-}
-.btn-action:hover { 
-    background: var(--accent); 
-    color: #000; 
-    box-shadow: 0 0 20px rgba(0, 242, 255, 0.4); 
-}
-
-.neon-btn { 
-    background: var(--accent) !important; 
-    color: #000 !important; 
-    box-shadow: 0 0 15px var(--accent); 
-}
-.btn-edit { color: var(--warning); background: none; border: none; cursor: pointer; }
-.btn-del { color: var(--danger); background: none; border: none; cursor: pointer; }
-.inv-total { 
-    padding: 20px; 
-    text-align: right; 
-    font-weight: bold; 
-    color: var(--accent); 
-    font-size: 1.2rem; 
-    font-family: 'Orbitron', sans-serif; 
-}
-
-.btn-del-item {
-    background: rgba(255, 77, 77, 0.1);
-    border: 1px solid var(--danger);
-    color: var(--danger);
-    border-radius: 4px;
-    width: 24px;
-    height: 24px;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 0.7rem;
-    transition: 0.2s;
-}
-.btn-del-item:hover { background: var(--danger); color: white; }
-
-/* --- RESULTADOS DE BÚSQUEDA --- */
-.search-result {
-    border-style: dashed;
-    animation: fadeIn 0.3s ease;
-}
-.search-result small {
-    display: block;
-    margin-bottom: 5px;
-    font-size: 0.65rem;
-    color: #ffffff; /* Texto de ayuda en blanco */
-    opacity: 0.8;
-    letter-spacing: 1px;
-}
-
-@keyframes fadeIn {
-    from { opacity: 0; transform: translateY(5px); }
-    to { opacity: 1; transform: translateY(0); }
-}
-
 /* --- SELECTOR DE PAGO --- */
 .payment-selector { display: flex; gap: 10px; margin-top: 10px; }
 .pay-btn {
     flex: 1;
     background: rgba(255, 255, 255, 0.05);
     border: 1px solid var(--border);
-    color: #ffffff; /* Texto "Efectivo/Transferencia" en blanco */
+    color: #ffffff;
     padding: 12px;
     border-radius: 8px;
     cursor: pointer;
@@ -287,134 +170,258 @@ th {
 .inv-input-inline { 
     background: #161b22;
     border: 1px solid var(--border);
-    color: #ffffff; /* Precios que escribes en blanco */
+    color: #ffffff;
     padding: 5px;
     border-radius: 4px;
     text-align: center;
 }
-/* --- style.css (Añadir al final) --- */
 
-/* --- BRANDING INFERIOR SUTIL (Estilo WhatsApp) --- */
+/* --- BRANDING INFERIOR SUTIL --- */
 .from-branding {
     position: absolute;
-    bottom: 20px; /* Separación del borde inferior */
+    bottom: 20px;
     left: 50%;
-    transform: translateX(-50%); /* Centrado horizontal perfecto */
+    transform: translateX(-50%);
     display: flex;
-    flex-direction: column; /* Texto arriba, imagen abajo */
+    flex-direction: column;
     align-items: center;
-    gap: 5px; /* Espacio entre texto e imagen */
-    opacity: 1; /* Opacidad completa para que se vea bien la imagen */
+    gap: 5px;
+    opacity: 1;
     transition: opacity 0.3s ease;
-    pointer-events: none; /* No interfiere con clics en el login */
+    pointer-events: none;
 }
 
-/* Efecto hover sutil al pasar el mouse por la zona inferior */
 #login-screen:hover .from-branding {
     opacity: 1;
 }
 
 .from-text {
-    font-family: 'Roboto', sans-serif; /* O 'Orbitron' si prefieres, pero Roboto es más sutil */
-    font-size: 0.65rem; /* Muy pequeño */
-    color: rgba(255, 255, 255, 0.6); /* Blanco translúcido */
-    text-transform: lowercase; /* Siempre en minúsculas estilo WhatsApp */
+    font-family: 'Roboto', sans-serif;
+    font-size: 0.65rem;
+    color: rgba(255, 255, 255, 0.6);
+    text-transform: lowercase;
     letter-spacing: 1px;
 }
 
 .branding-logo {
-    height: 60px; /* Altura para que se vea bien el logo */
-    width: auto; /* Mantiene la proporción */
-    object-fit: contain; /* Asegura que la imagen completa sea visible */
+    height: 60px;
+    width: auto;
+    object-fit: contain;
     display: block;
     margin: 10px 0;
     opacity: 0.95;
     filter: drop-shadow(0 0 8px rgba(42, 141, 217, 0.3));
 }
+
 /* =========================================================
    CONFIGURACIÓN PARA IMPRESORA TÉRMICA DG-5811K (58mm)
    ========================================================= */
 
-/* Oculta el ticket en la pantalla del computador/celular */
+/* Oculta los tickets en la pantalla normal */
 .ticket-hidden { 
-    display: none; 
+    display: none !important;
 }
 
+/* ============================================================
+   ESTILOS DE IMPRESIÓN - PAPEL TÉRMICO 58MM
+   ============================================================ */
 @media print {
-    /* Elimina márgenes de página del navegador */
-    @page { margin: 0; }
-
-    /* Oculta TODO el sitio web (fondo negro, botones, grid) */
-    body * { visibility: hidden; }
-
-    /* Muestra solo el ticket y su contenido */
-    #ticket-cierre, #ticket-cierre * { 
-        visibility: visible; 
-    }
-    
-    #ticket-cierre {
-        position: absolute;
-        left: 0;
-        top: 0;
-        width: 48mm; /* Ancho real de impresión para papel de 58mm */
-        font-family: 'Courier New', Courier, monospace;
-        color: black !important;
+    /* Resetea todo el documento */
+    * {
+        margin: 0 !important;
+        padding: 0 !important;
         background: white !important;
-        font-size: 8pt;
-        line-height: 1.2;
-        padding: 1mm;
+        color: black !important;
+        border: none !important;
+        box-shadow: none !important;
     }
 
-    /* Títulos de categorías (COMIDA, BEBIDAS, GASTOS) */
+    /* Configuración de página */
+    @page {
+        margin: 0 !important;
+        size: 58mm auto;
+        padding: 0 !important;
+    }
+
+    html, body {
+        width: 58mm !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        background: white !important;
+    }
+
+    /* Oculta TODO excepto el ticket */
+    body > * {
+        display: none !important;
+        visibility: hidden !important;
+    }
+
+    /* MUESTRA LOS TICKETS */
+    #ticket-cierre,
+    #ticket-comanda {
+        display: block !important;
+        visibility: visible !important;
+        position: static !important;
+        width: 58mm !important;
+        margin: 0 !important;
+        padding: 2mm !important;
+        background: white !important;
+        color: black !important;
+        border: none !important;
+        font-family: 'Courier New', monospace !important;
+        font-size: 8pt !important;
+        line-height: 1.4 !important;
+    }
+
+    #ticket-cierre * ,
+    #ticket-comanda * {
+        display: block !important;
+        visibility: visible !important;
+        background: white !important;
+        color: black !important;
+        width: auto !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        border: none !important;
+        box-shadow: none !important;
+        font-size: inherit !important;
+    }
+
+    /* Títulos del ticket */
+    #ticket-cierre h2,
+    #ticket-comanda h2,
+    #ticket-comanda h3 {
+        font-size: 10pt !important;
+        font-weight: bold !important;
+        text-align: center !important;
+        margin: 2mm 0 !important;
+        width: 100% !important;
+    }
+
+    #ticket-cierre p,
+    #ticket-comanda p {
+        font-size: 8pt !important;
+        margin: 1mm 0 !important;
+        width: 100% !important;
+        text-align: left !important;
+    }
+
+    #ticket-cierre hr,
+    #ticket-comanda hr {
+        border: none !important;
+        border-top: 1px solid black !important;
+        margin: 2mm 0 !important;
+        padding: 0 !important;
+        width: 100% !important;
+    }
+
+    /* Secciones del ticket */
+    .seccion-ticket {
+        display: block !important;
+        width: 100% !important;
+        margin: 2mm 0 !important;
+        padding: 0 !important;
+    }
+
     .titulo-seccion {
-        font-weight: bold;
-        text-decoration: underline;
-        margin: 4px 0 2px 0;
-        font-size: 8pt;
-        text-transform: uppercase;
+        font-weight: bold !important;
+        font-size: 8pt !important;
+        margin: 2mm 0 1mm 0 !important;
+        text-transform: uppercase !important;
+        width: 100% !important;
     }
 
-    /* Alineación perfecta: Nombre a la izquierda, Precio a la derecha */
+    /* Items del ticket */
     .item-linea {
-        display: flex;
-        justify-content: space-between;
-        align-items: flex-end;
-        width: 100%;
-        white-space: nowrap; /* Evita que el precio se baje de renglón */
-        margin-bottom: 2px;
+        display: flex !important;
+        justify-content: space-between !important;
+        width: 100% !important;
+        font-size: 8pt !important;
+        margin: 1mm 0 !important;
+        padding: 0 !important;
     }
 
     .nombre-item {
-        overflow: hidden;
-        flex: 1;
-        margin-right: 4px;
-        text-align: left;
+        flex: 1 !important;
+        overflow: hidden !important;
+        text-align: left !important;
+        word-break: break-all !important;
     }
 
     .precio-item {
-        text-align: right;
-        min-width: 55px; /* Espacio reservado para el valor en $ */
+        text-align: right !important;
+        white-space: nowrap !important;
+        margin-left: 2mm !important;
     }
 
-    /* Cuadro de Total en Efectivo */
+    /* Resaltado (Total en caja) */
     .resaltado-negro {
-        text-align: center;
-        font-size: 11pt;
-        font-weight: bold;
-        border: 1px solid black;
-        padding: 3px;
-        margin: 5px 0;
+        text-align: center !important;
+        font-size: 10pt !important;
+        font-weight: bold !important;
+        border: 1px solid black !important;
+        padding: 2mm !important;
+        margin: 2mm 0 !important;
+        width: auto !important;
     }
 
-    /* Líneas divisorias punteadas */
-    hr { 
-        border: none; 
-        border-top: 1px dashed black; 
-        margin: 4px 0; 
+    /* Lista de productos */
+    #lista-comida,
+    #lista-bebidas,
+    #lista-gastos {
+        display: block !important;
+        width: 100% !important;
+        margin: 0 !important;
+        padding: 0 !important;
     }
-    body.modo-comanda #ticket-cierre { display: none !important; }
-    body.modo-comanda #ticket-comanda { display: block !important; visibility: visible; }
+
+    /* Para la comanda de cocina */
+    #comanda-n-mesa,
+    #comanda-fecha {
+        display: inline !important;
+    }
+
+    #comanda-items {
+        display: block !important;
+        width: 100% !important;
+        margin: 1mm 0 !important;
+    }
+
+    #comanda-items div {
+        display: flex !important;
+        justify-content: space-between !important;
+        width: 100% !important;
+        margin: 1mm 0 !important;
+        font-weight: normal !important;
+    }
+
+    /* Fecha de impresión */
+    #fecha-impresion {
+        font-size: 7pt !important;
+        text-align: center !important;
+        margin: 2mm 0 !important;
+    }
+
+    /* Oculta elementos innecesarios en impresión */
+    .grid-overlay,
+    .top-bar,
+    .menu-grid,
+    .work-area,
+    button,
+    input,
+    .btn-nav,
+    .nav-controls {
+        display: none !important;
+        visibility: hidden !important;
+    }
+
+    /* Asegura que los br funcionen */
+    br {
+        display: block !important;
+        height: 1mm !important;
+    }
 }
+
 .hidden {
     display: none !important;
 }

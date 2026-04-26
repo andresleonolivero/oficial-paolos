@@ -5,7 +5,7 @@ if (typeof database === 'undefined') {
 
 //////////////////////
 let listaUsuariosLocal = {};
-let userRole = "ventas"; // Por defecto
+let userRole = "ventas";
 
 function aplicarPermisos() {
     const elementosAdmin = document.querySelectorAll('.solo-admin');
@@ -14,8 +14,6 @@ function aplicarPermisos() {
     });
 }
 
-// --- 1. CONFIGURAR USUARIOS CON ROLES EN FIREBASE ---
-// Se ejecuta automáticamente al cargar. Crea admin y ventas si no existen.
 database.ref('users/admin').once('value', (snapshot) => {
     if (!snapshot.exists() || !snapshot.val().rol) {
         database.ref('users').update({
@@ -25,7 +23,6 @@ database.ref('users/admin').once('value', (snapshot) => {
     }
 });
 
-// --- 2. DESCARGAR USUARIOS Y CAMBIAR ESTADO ---
 database.ref('users').on('value', (snapshot) => {
     listaUsuariosLocal = snapshot.val();
     const status = document.getElementById('debug-status');
@@ -35,11 +32,9 @@ database.ref('users').on('value', (snapshot) => {
     }
 });
 
-// --- 3. VALIDAR ACCESO ---
 function validarAcceso() {
     const user = document.getElementById('login-user').value.toLowerCase().trim();
     const pass = document.getElementById('login-pass').value.trim();
-    const errorTxt = document.getElementById('error-txt');
 
     if (listaUsuariosLocal && listaUsuariosLocal[user]) {
         if (listaUsuariosLocal[user].clave === pass) {
@@ -68,10 +63,141 @@ function mostrarError() {
     setTimeout(() => { txt.style.display = 'none'; }, 3000);
 }
 
+// --- MODO CLARO / OSCURO ---
+function toggleModoClaro() {
+    const body = document.body;
+    const btn = document.getElementById('btn-tema');
+    if (body.classList.contains('modo-claro')) {
+        body.classList.remove('modo-claro');
+        if (btn) btn.innerText = '☀️';
+        localStorage.setItem('paolos_tema', 'oscuro');
+    } else {
+        body.classList.add('modo-claro');
+        if (btn) btn.innerText = '🌙';
+        localStorage.setItem('paolos_tema', 'claro');
+    }
+}
 
-// --- 4. ARRANQUE DEL SISTEMA CORREGIDO ---
+// --- ARRANQUE DEL SISTEMA ---
 window.addEventListener('load', () => {
-    // 1. Sincronización de Usuarios y Sesión
+
+    // Aplicar tema guardado
+    if (localStorage.getItem('paolos_tema') === 'claro') {
+        document.body.classList.add('modo-claro');
+        const btn = document.getElementById('btn-tema');
+        if (btn) btn.innerText = '🌙';
+    }
+
+    // CSS modo claro inyectado dinámicamente
+    const estiloClaro = document.createElement('style');
+    estiloClaro.innerHTML = `
+        body.modo-claro {
+            background: #f0f2f5 !important;
+            color: #111 !important;
+        }
+        body.modo-claro .glass-card {
+            background: #ffffff !important;
+            border-color: #ddd !important;
+            color: #111 !important;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.08) !important;
+        }
+        body.modo-claro .product-card {
+            background: #f5f5f5 !important;
+            border-color: #ddd !important;
+            color: #111 !important;
+        }
+        body.modo-claro .mesa-btn,
+        body.modo-claro .category-btn {
+            background: #e8e8e8 !important;
+            color: #111 !important;
+            border-color: #ccc !important;
+        }
+        body.modo-claro .btn-action {
+            color: #000 !important;
+        }
+        body.modo-claro input,
+        body.modo-claro select,
+        body.modo-claro textarea {
+            background: #fff !important;
+            color: #111 !important;
+            border-color: #bbb !important;
+        }
+        body.modo-claro table, body.modo-claro td, body.modo-claro th {
+            color: #111 !important;
+            border-color: #ddd !important;
+        }
+        body.modo-claro .inv-total {
+            background: #e5e5e5 !important;
+            color: #111 !important;
+        }
+        body.modo-claro #login-screen {
+            background: #f0f2f5 !important;
+        }
+        body.modo-claro .order-summary {
+            background: #fff !important;
+            color: #111 !important;
+        }
+        body.modo-claro .summary-item {
+            border-color: #ddd !important;
+            color: #111 !important;
+        }
+        body.modo-claro .flavor-item {
+            background: #f5f5f5 !important;
+            border-color: #ddd !important;
+            color: #111 !important;
+        }
+        body.modo-claro .pay-btn {
+            background: #e0e0e0 !important;
+            color: #111 !important;
+            border-color: #ccc !important;
+        }
+        body.modo-claro .pay-btn.selected {
+            background: var(--accent) !important;
+            color: #000 !important;
+        }
+        body.modo-claro #module-title {
+            color: #111 !important;
+        }
+
+        /* PANTALLA GRANDE - mejor aprovechamiento de espacio */
+        @media (min-width: 1200px) {
+            #dashboard {
+                max-width: 1400px !important;
+                margin: 0 auto !important;
+            }
+            #module-selector {
+                display: grid !important;
+                grid-template-columns: repeat(4, 1fr) !important;
+                gap: 20px !important;
+                padding: 30px !important;
+            }
+            .tables-grid {
+                grid-template-columns: repeat(4, 1fr) !important;
+                gap: 20px !important;
+            }
+            .products-grid {
+                grid-template-columns: repeat(4, 1fr) !important;
+            }
+            .glass-card {
+                padding: 24px !important;
+            }
+            #work-area {
+                max-width: 1200px !important;
+                margin: 0 auto !important;
+            }
+        }
+        @media (min-width: 1600px) {
+            #module-selector {
+                grid-template-columns: repeat(5, 1fr) !important;
+            }
+            .products-grid {
+                grid-template-columns: repeat(5, 1fr) !important;
+            }
+        }
+    `;
+    document.head.appendChild(estiloClaro);
+
+    // Sincronización de Usuarios y Sesión
     database.ref('users').on('value', (snapshot) => {
         listaUsuariosLocal = snapshot.val();
         const status = document.getElementById('debug-status');
@@ -87,43 +213,38 @@ window.addEventListener('load', () => {
         }
     });
 
-    // 2. Sincronización de GASTOS en tiempo real
+    // Sincronización de GASTOS
     database.ref('paolos_gastos_actuales').on('value', (snapshot) => {
         const data = snapshot.val();
         Gastos = data ? Object.keys(data).map(key => ({ idFirebase: key, ...data[key] })) : [];
         localStorage.setItem('paolos_gastos_turno', JSON.stringify(Gastos));
-        
         if (document.getElementById('work-area') && !document.getElementById('work-area').classList.contains('hidden')) {
             const title = document.getElementById('module-title').innerText;
             if (title === "OTROS / GASTOS") renderOtros(document.getElementById('module-content'));
-            // Solo refrescar caja si NO está mostrando el desglose detallado
             if (title === "CONTROL DE CAJA (TURNO)" && !document.getElementById('module-content').querySelector('h3[style*="a78bfa"]')) {
                 renderVentasDia(document.getElementById('module-content'));
             }
         }
     });
 
-    // 3. Sincronización de VENTAS/TRANSFERENCIAS en tiempo real
+    // Sincronización de VENTAS
     database.ref('paolos_ventas_actuales').on('value', (snapshot) => {
         const data = snapshot.val();
         VentasHistoricas = data ? Object.values(data) : [];
         localStorage.setItem('paolos_ventas_turno', JSON.stringify(VentasHistoricas));
-        
         if (document.getElementById('work-area') && !document.getElementById('work-area').classList.contains('hidden')) {
             const title = document.getElementById('module-title').innerText;
             if (title === "REPORTES TRANSFERENCIAS") renderTransferencias(document.getElementById('module-content'));
-            // No refrescar caja si admin está viendo el desglose detallado
             if (title === "CONTROL DE CAJA (TURNO)" && !viendoDesglose) {
                 renderVentasDia(document.getElementById('module-content'));
             }
-            // Si está en desglose, actualizar los datos silenciosamente sin salirse
             if (title === "CONTROL DE CAJA (TURNO)" && viendoDesglose) {
                 renderDesgloseDetallado();
             }
         }
     });
 
-    // 4. Monitor de conexión en tiempo real
+    // Monitor de conexión
     const connectedRef = database.ref(".info/connected");
     connectedRef.on("value", (snap) => {
         const statusLabel = document.getElementById('debug-status');
@@ -132,36 +253,31 @@ window.addEventListener('load', () => {
             statusLabel.innerText = "SISTEMA ONLINE ✅";
             statusLabel.style.color = "var(--success)";
         } else {
-            statusLabel.innerText = "MODO OFFLINE ⚠️ (Sin conexión)";
+            statusLabel.innerText = "MODO OFFLINE ⚠️ (Sin conexion)";
             statusLabel.style.color = "var(--danger)";
         }
     });
 
-    // 5. Sincronización del estado de CAJA en tiempo real (abierta/cerrada en todos los dispositivos)
+    // Sincronización estado de CAJA
     database.ref('paolos_caja_estado').on('value', (snapshot) => {
         const data = snapshot.val();
         if (!data) return;
-
         const cajaAbiertaAntes = cajaAbierta;
         cajaAbierta = data.abierta === true;
-        
         if (cajaAbierta) {
-            CajaActual = { 
-                base: data.base || 0, 
-                fecha: data.fecha || null, 
-                horaApertura: data.horaApertura || null 
+            CajaActual = {
+                base: data.base || 0,
+                fecha: data.fecha || null,
+                horaApertura: data.horaApertura || null
             };
             localStorage.setItem('paolos_caja_abierta', 'true');
             localStorage.setItem('paolos_caja_datos', JSON.stringify(CajaActual));
         } else if (cajaAbiertaAntes && !cajaAbierta) {
-            // Caja recién cerrada desde otro dispositivo
             cajaAbierta = false;
             CajaActual = { base: 0, fecha: null, horaApertura: null };
             localStorage.removeItem('paolos_caja_abierta');
             localStorage.removeItem('paolos_caja_datos');
         }
-
-        // Refrescar UI si el usuario está en el módulo de caja
         if (document.getElementById('work-area') && !document.getElementById('work-area').classList.contains('hidden')) {
             const title = document.getElementById('module-title').innerText;
             if (title === "CONTROL DE CAJA (TURNO)" && !document.getElementById('module-content').querySelector('h3[style*="a78bfa"]')) {
@@ -177,15 +293,11 @@ function cerrarSesion() {
     localStorage.removeItem('token_paolos');
     location.reload();
 }
-//////////////////////////////
 
 // --- BASE DE DATOS Y ESTADO GLOBAL ---
 let DB = {
     menu: {
         pizzas_completa: [
-            // precio_esp = precio si todos los sabores son especialidad (o mix con especialidad)
-            // precio_trad = precio si TODOS los sabores son tradicionales
-            // La lógica cobra Math.max de los sabores seleccionados, estos valores son solo referencia para el admin
             { nombre: "Pizza Grande (16 Porc.)",  precio_esp: 85000, precio_trad: 75000 },
             { nombre: "Pizza Mediana (12 Porc.)", precio_esp: 62000, precio_trad: 57000 },
             { nombre: "Pizza Pequeña (8 Porc.)",  precio_esp: 50000, precio_trad: 40000 },
@@ -194,42 +306,39 @@ let DB = {
         crepes: [
             { nombre: "Crepe Paolos",   precio: 30000 },
             { nombre: "Crepe Marinero", precio: 30000 },
-            { nombre: "Crepe Clásico", precio: 27000 }
+            { nombre: "Crepe Clasico",  precio: 27000 }
         ],
         lasañas: [
-            { nombre: "Lasaña Especial", precio_p: 23000, precio_f: 42000 },
-            { nombre: "Lasaña Blanca", precio_p: 23000, precio_f: 42000 },
-            { nombre: "Lasaña Vegetariana", precio_p: 23000, precio_f: 42000 }
+            { nombre: "Lasaña Especial",    precio_p: 23000, precio_m: 32000, precio_f: 42000 },
+            { nombre: "Lasaña Blanca",      precio_p: 23000, precio_m: 32000, precio_f: 42000 },
+            { nombre: "Lasaña Vegetariana", precio_p: 23000, precio_m: 32000, precio_f: 42000 }
         ],
-// Dentro de DB.menu:   
         panzerottis: [
-            { nombre: "Marinero", precio: 20000 },
-            { nombre: "Jamón y Queso", precio: 20000 },
-            { nombre: "Italiano", precio: 20000 },
-            { nombre: "Romano", precio: 23000 },
-            { nombre: "Hawaiano", precio: 23000 },
+            { nombre: "Marinero",            precio: 20000 },
+            { nombre: "Jamon y Queso",       precio: 20000 },
+            { nombre: "Italiano",            precio: 20000 },
+            { nombre: "Romano",              precio: 23000 },
+            { nombre: "Hawaiano",            precio: 23000 },
             { nombre: "Pollo y Champiñones", precio: 23000 },
-            { nombre: "Vegetariano", precio: 23000 },
-            { nombre: "Trifásico", precio: 25000 }
-],
+            { nombre: "Vegetariano",         precio: 23000 },
+            { nombre: "Trifasico",           precio: 25000 }
+        ],
         pastas: [
-            { nombre: "A la Boloñesa", precio: 25000 },
-            { nombre: "Carbonara", precio: 25000 },
-            { nombre: "Pasta Paolo's", precio: 30000 },
+            { nombre: "A la Boloñesa",     precio: 25000 },
+            { nombre: "Carbonara",         precio: 25000 },
+            { nombre: "Pasta Paolo's",     precio: 30000 },
             { nombre: "Coctel de Camarones", precio: 20000 }
-],
-        
-        bebidas: [] 
+        ],
+        bebidas: []
     },
     sabores_pizzas: [
-        // ESPECIALIDADES: Mini $32k / Pequeña $50k / Mediana $62k / Grande $85k
         { id: 1,  nombre: "Peperoni Picante",   tipo: "especialidad", precio_mini: 32000, precio_p: 50000, precio_m: 62000, precio_g: 85000, precio: 7000 },
         { id: 2,  nombre: "Marinera",            tipo: "especialidad", precio_mini: 32000, precio_p: 50000, precio_m: 62000, precio_g: 85000, precio: 7000 },
         { id: 3,  nombre: "Mexicana",            tipo: "especialidad", precio_mini: 32000, precio_p: 50000, precio_m: 62000, precio_g: 85000, precio: 7000 },
-        { id: 4,  nombre: "Camarón y Pollo",     tipo: "especialidad", precio_mini: 32000, precio_p: 50000, precio_m: 62000, precio_g: 85000, precio: 7000 },
+        { id: 4,  nombre: "Camaron y Pollo",     tipo: "especialidad", precio_mini: 32000, precio_p: 50000, precio_m: 62000, precio_g: 85000, precio: 7000 },
         { id: 5,  nombre: "BBQ",                 tipo: "especialidad", precio_mini: 32000, precio_p: 50000, precio_m: 62000, precio_g: 85000, precio: 7000 },
         { id: 6,  nombre: "Carnes",              tipo: "especialidad", precio_mini: 32000, precio_p: 50000, precio_m: 62000, precio_g: 85000, precio: 7000 },
-        { id: 7,  nombre: "Maíz Tocineta",       tipo: "especialidad", precio_mini: 32000, precio_p: 50000, precio_m: 62000, precio_g: 85000, precio: 7000 },
+        { id: 7,  nombre: "Maiz Tocineta",       tipo: "especialidad", precio_mini: 32000, precio_p: 50000, precio_m: 62000, precio_g: 85000, precio: 7000 },
         { id: 8,  nombre: "Tropical",            tipo: "especialidad", precio_mini: 32000, precio_p: 50000, precio_m: 62000, precio_g: 85000, precio: 7000 },
         { id: 9,  nombre: "De la Huerta",        tipo: "especialidad", precio_mini: 32000, precio_p: 50000, precio_m: 62000, precio_g: 85000, precio: 7000 },
         { id: 10, nombre: "Romana",              tipo: "especialidad", precio_mini: 32000, precio_p: 50000, precio_m: 62000, precio_g: 85000, precio: 7000 },
@@ -241,34 +350,32 @@ let DB = {
         { id: 16, nombre: "Diputado",            tipo: "especialidad", precio_mini: 32000, precio_p: 50000, precio_m: 62000, precio_g: 85000, precio: 7000 },
         { id: 17, nombre: "UFO",                 tipo: "especialidad", precio_mini: 32000, precio_p: 50000, precio_m: 62000, precio_g: 85000, precio: 7000 },
         { id: 18, nombre: "Rumbera",             tipo: "especialidad", precio_mini: 32000, precio_p: 50000, precio_m: 62000, precio_g: 85000, precio: 7000 },
-        { id: 19, nombre: "Caribeña",            tipo: "especialidad", precio_mini: 32000, precio_p: 50000, precio_m: 62000, precio_g: 85000, precio: 7000 },
-        { id: 20, nombre: "Pollo Maíz Tocineta", tipo: "especialidad", precio_mini: 32000, precio_p: 50000, precio_m: 62000, precio_g: 85000, precio: 7000 },
-        // TRADICIONALES: Mini $28k / Pequeña $40k / Mediana $57k / Grande $75k
+        { id: 19, nombre: "Caribena",            tipo: "especialidad", precio_mini: 32000, precio_p: 50000, precio_m: 62000, precio_g: 85000, precio: 7000 },
+        { id: 20, nombre: "Pollo Maiz Tocineta", tipo: "especialidad", precio_mini: 32000, precio_p: 50000, precio_m: 62000, precio_g: 85000, precio: 7000 },
         { id: 21, nombre: "Hawaiana",            tipo: "tradicional",  precio_mini: 28000, precio_p: 40000, precio_m: 57000, precio_g: 75000, precio: 7000 },
         { id: 22, nombre: "Pollo Champiñones",   tipo: "tradicional",  precio_mini: 28000, precio_p: 40000, precio_m: 57000, precio_g: 75000, precio: 7000 },
-        { id: 23, nombre: "Pollo Jamón",         tipo: "tradicional",  precio_mini: 28000, precio_p: 40000, precio_m: 57000, precio_g: 75000, precio: 7000 },
+        { id: 23, nombre: "Pollo Jamon",         tipo: "tradicional",  precio_mini: 28000, precio_p: 40000, precio_m: 57000, precio_g: 75000, precio: 7000 },
         { id: 24, nombre: "Pollo Tocineta",      tipo: "tradicional",  precio_mini: 28000, precio_p: 40000, precio_m: 57000, precio_g: 75000, precio: 7000 },
         { id: 25, nombre: "Napolitana",          tipo: "tradicional",  precio_mini: 28000, precio_p: 40000, precio_m: 57000, precio_g: 75000, precio: 7000 },
         { id: 26, nombre: "Vegetariana",         tipo: "tradicional",  precio_mini: 28000, precio_p: 40000, precio_m: 57000, precio_g: 75000, precio: 7000 },
         { id: 27, nombre: "Bocadillo y Queso",   tipo: "tradicional",  precio_mini: 28000, precio_p: 40000, precio_m: 57000, precio_g: 75000, precio: 7000 },
         { id: 28, nombre: "Pollo Miel Mostaza",  tipo: "tradicional",  precio_mini: 28000, precio_p: 40000, precio_m: 57000, precio_g: 75000, precio: 7000 },
-        { id: 29, nombre: "Jamón Pollo",         tipo: "tradicional",  precio_mini: 28000, precio_p: 40000, precio_m: 57000, precio_g: 75000, precio: 7000 }
+        { id: 29, nombre: "Jamon Pollo",         tipo: "tradicional",  precio_mini: 28000, precio_p: 40000, precio_m: 57000, precio_g: 75000, precio: 7000 }
     ],
-    bebidas_inv: [] 
+    bebidas_inv: []
 };
 
-// --- ESTADO GLOBAL Y PERSISTENCIA ---
-// Busca esto cerca de la línea 105
+// --- ESTADO GLOBAL ---
 let Cuentas = JSON.parse(localStorage.getItem('paolos_cuentas')) || {};
-let VentasHistoricas = JSON.parse(localStorage.getItem('paolos_ventas_turno')) || []; 
-let Gastos = JSON.parse(localStorage.getItem('paolos_gastos_turno')) || []; 
-let metodoPagoSeleccionado = 'Efectivo'; 
-let viendoDesglose = false; // Flag para saber si admin está en desglose detallado
+let VentasHistoricas = JSON.parse(localStorage.getItem('paolos_ventas_turno')) || [];
+let Gastos = JSON.parse(localStorage.getItem('paolos_gastos_turno')) || [];
+let metodoPagoSeleccionado = 'Efectivo';
+let metodoPagoMixto = { activo: false, efectivo: 0, transferencia: 0 };
+let viendoDesglose = false;
 
-// --- ESTADO DE CAJA E HISTORIAL RECUPERABLE ---
 let cajaAbierta = localStorage.getItem('paolos_caja_abierta') === 'true';
 let CajaActual = JSON.parse(localStorage.getItem('paolos_caja_datos')) || { base: 0, fecha: null, horaApertura: null };
-let HistorialCierres = []; // Este se sigue bajando de Firebase, no hace falta local
+let HistorialCierres = [];
 
 function guardarEstadoLocal() {
     localStorage.setItem('paolos_cuentas', JSON.stringify(Cuentas));
@@ -277,7 +384,8 @@ function guardarEstadoLocal() {
     localStorage.setItem('paolos_caja_abierta', cajaAbierta);
     localStorage.setItem('paolos_caja_datos', JSON.stringify(CajaActual));
 }
-// --- SINCRONIZACIÓN CON FIREBASE ---
+
+// --- SINCRONIZACIÓN FIREBASE ---
 database.ref('paolos_historial').on('value', (snapshot) => {
     const data = snapshot.val();
     HistorialCierres = data ? Object.keys(data).map(key => ({ id: key, ...data[key] })) : [];
@@ -294,7 +402,6 @@ database.ref('config_precios').on('value', (snapshot) => {
     if (data) {
         if (data.menu) DB.menu = data.menu;
         if (data.sabores) {
-            // Asegurar que cada sabor tenga los precios por tamaño según su tipo
             const preciosEsp  = { precio_mini: 32000, precio_p: 50000, precio_m: 62000, precio_g: 85000 };
             const preciosTrad = { precio_mini: 28000, precio_p: 40000, precio_m: 57000, precio_g: 75000 };
             DB.sabores_pizzas = data.sabores.map(s => {
@@ -305,22 +412,15 @@ database.ref('config_precios').on('value', (snapshot) => {
     }
 });
 
-// --- SINCRONIZACIÓN EN TIEMPO REAL DE CUENTAS/PEDIDOS ---
 let ultimaSincronizacion = JSON.stringify({});
 database.ref('paolos_cuentas_activas').on('value', (snapshot) => {
     const data = snapshot.val() || {};
     const datosStringificados = JSON.stringify(data);
-    
-    // Solo actualizar si el cambio viene de otro dispositivo
     if (datosStringificados !== ultimaSincronizacion && datosStringificados !== JSON.stringify(Cuentas)) {
-        console.log("🔄 Cuentas actualizado desde otro dispositivo");
         Cuentas = JSON.parse(datosStringificados);
         guardarEstadoLocal();
-        
-        // Refrescar la interfaz si estamos en la vista de mesas
         if (document.getElementById('product-list-container')) {
             const modTitle = document.getElementById('module-title').innerText;
-            // Encontrar el destino actual del módulo
             for (let dest of Object.keys(Cuentas)) {
                 if (modTitle.toUpperCase() === dest.toUpperCase()) {
                     renderOrderSummary(dest);
@@ -338,6 +438,7 @@ function syncCuentasToFirebase() {
 }
 
 function syncInv() { database.ref('bebidas_inv').set(DB.bebidas_inv); }
+
 function syncPrecios() {
     database.ref('config_precios').set({ menu: DB.menu, sabores: DB.sabores_pizzas });
 }
@@ -345,7 +446,7 @@ function syncPrecios() {
 // --- NAVEGACIÓN ---
 function openModule(tipo) {
     if (!cajaAbierta && userRole !== 'admin' && (tipo === 'pizzas' || tipo === 'otros')) {
-        alert("⚠️ DEBES ABRIR CAJA PRIMERO EN EL MÓDULO 'CAJA TURNO'");
+        alert("⚠️ DEBES ABRIR CAJA PRIMERO EN EL MODULO 'CAJA TURNO'");
         return;
     }
     document.getElementById('module-selector').classList.add('hidden');
@@ -354,20 +455,29 @@ function openModule(tipo) {
     const title = document.getElementById('module-title');
     document.getElementById('btn-back-tables').classList.add('hidden');
 
-    if (tipo === 'pizzas') { title.innerText = "MÓDULO MESAS"; renderTables(container); }
-    else if (tipo === 'inv-bebidas') { title.innerText = "INV. BEBIDAS"; abrirInventarioConClave(container, 'bebidas_inv'); }
-    else if (tipo === 'transferencias') { title.innerText = "REPORTES TRANSFERENCIAS"; renderTransferencias(container); }
-    else if (tipo === 'ventas-dia') { title.innerText = "CONTROL DE CAJA (TURNO)"; renderVentasDia(container); }
-    else if (tipo === 'otros') { title.innerText = "OTROS / GASTOS"; renderOtros(container); }
-    else if (tipo === 'stats') { title.innerText = "GANANCIAS Y ESTADÍSTICAS"; renderStats(container); }
-    else if (tipo === 'ajustes') { title.innerText = "AJUSTES DE PRECIOS"; renderAjustes(container); }
+    if (tipo === 'pizzas')              { title.innerText = "MODULO MESAS";             renderTables(container); }
+    else if (tipo === 'inv-bebidas')    { title.innerText = "INV. BEBIDAS";             abrirInventarioConClave(container, 'bebidas_inv'); }
+    else if (tipo === 'transferencias') { title.innerText = "REPORTES TRANSFERENCIAS";  renderTransferencias(container); }
+    else if (tipo === 'ventas-dia')     { title.innerText = "CONTROL DE CAJA (TURNO)";  renderVentasDia(container); }
+    else if (tipo === 'otros')          { title.innerText = "OTROS / GASTOS";            renderOtros(container); }
+    else if (tipo === 'stats')          { title.innerText = "GANANCIAS Y ESTADISTICAS"; renderStats(container); }
+    else if (tipo === 'ajustes')        { title.innerText = "AJUSTES DE PRECIOS";       renderAjustes(container); }
 }
 
-function showMenu() { 
-    inventarioDesbloqueado = false; // Resetear acceso al salir
-    document.getElementById('work-area').classList.add('hidden'); 
-    document.getElementById('module-selector').classList.remove('hidden'); 
+// Volver al menú principal (botón HOME)
+function showMenu() {
+    inventarioDesbloqueado = false;
+    viendoDesglose = false;
+    document.getElementById('work-area').classList.add('hidden');
+    document.getElementById('module-selector').classList.remove('hidden');
     document.getElementById('btn-back-tables').classList.add('hidden');
+}
+
+// Volver a la pantalla de mesas (desde dentro de un pedido)
+function volverAMesas() {
+    document.getElementById('btn-back-tables').classList.add('hidden');
+    document.getElementById('module-title').innerText = "MODULO MESAS";
+    renderTables(document.getElementById('module-content'));
 }
 
 // --- MÓDULO DE CAJA ---
@@ -386,9 +496,8 @@ function renderVentasDia(container) {
     if (!cajaAbierta && userRole === 'admin') {
         container.innerHTML = `
             <div class="glass-card" style="text-align:center; padding:30px; border-left: 4px solid #7c3aed;">
-                <h3 style="color:#a78bfa;">👁️ MODO ADMIN — CAJA AÚN NO ABIERTA</h3>
+                <h3 style="color:#a78bfa;">👁️ MODO ADMIN — CAJA AUN NO ABIERTA</h3>
                 <p style="opacity:0.6; margin-top:10px;">Esperando que ventas abra la caja...</p>
-                <p style="opacity:0.4; font-size:0.8rem; margin-top:5px;">Los movimientos aparecerán aquí en tiempo real.</p>
             </div>`;
         return;
     }
@@ -396,23 +505,34 @@ function renderVentasDia(container) {
     let totalesDetalle = { porciones: 0, pizzas: 0, crepes: 0, lasañas: 0, pastas: 0, panzerotti: 0, bebidas: 0, transferencia: 0 };
     let totalEfectivo = 0, totalTransf = 0;
     let totalGastos = Gastos.reduce((sum, g) => sum + g.monto, 0);
-    
+
     VentasHistoricas.forEach(v => {
-        if(v.metodo === 'Efectivo') totalEfectivo += v.total;
-        else { totalTransf += v.total; totalesDetalle.transferencia += v.total; }
-        v.items.forEach(item => {
-            const cat = item.categoria || "otros";
-            if (cat === "porciones") totalesDetalle.porciones += item.precio;
-            else if (cat === "pizzas") totalesDetalle.pizzas += item.precio;
-            else if (cat === "crepes") totalesDetalle.crepes += item.precio;
-            else if (cat === "lasañas") totalesDetalle.lasañas += item.precio;
-            else if (cat === "pastas") totalesDetalle.pastas += item.precio;
-            else if (cat === "panzerottis") totalesDetalle.panzerotti += item.precio;
-            else if (cat === "bebidas") totalesDetalle.bebidas += item.precio;
-        });
+        if (v.metodo === 'Efectivo') {
+            totalEfectivo += v.total;
+        } else if (v.metodo === 'Transferencia') {
+            totalTransf += v.total;
+            totalesDetalle.transferencia += v.total;
+        } else if (v.metodo === 'Mixto') {
+            totalEfectivo += (v.pagoEfectivo || 0);
+            totalTransf += (v.pagoTransferencia || 0);
+            totalesDetalle.transferencia += (v.pagoTransferencia || 0);
+        }
+        if (v.items) {
+            v.items.forEach(item => {
+                const cat = item.categoria || "otros";
+                if (cat === "porciones")    totalesDetalle.porciones  += item.precio;
+                else if (cat === "pizzas")  totalesDetalle.pizzas     += item.precio;
+                else if (cat === "crepes")  totalesDetalle.crepes     += item.precio;
+                else if (cat === "lasañas") totalesDetalle.lasañas    += item.precio;
+                else if (cat === "pastas")  totalesDetalle.pastas     += item.precio;
+                else if (cat === "panzerottis") totalesDetalle.panzerotti += item.precio;
+                else if (cat === "bebidas") totalesDetalle.bebidas    += item.precio;
+            });
+        }
     });
 
     const totalVentas = totalEfectivo + totalTransf;
+    // Las transferencias se descuentan del efectivo en caja
     const efectivoEnCaja = (totalEfectivo + CajaActual.base) - totalGastos;
 
     container.innerHTML = `
@@ -437,13 +557,14 @@ function renderVentasDia(container) {
                 <div class="product-card"><h4>🍽️ Pastas</h4><span>$${totalesDetalle.pastas.toLocaleString()}</span></div>
                 <div class="product-card"><h4>🍔 Panzerotti</h4><span>$${totalesDetalle.panzerotti.toLocaleString()}</span></div>
                 <div class="product-card"><h4>🥤 Bebidas</h4><span>$${totalesDetalle.bebidas.toLocaleString()}</span></div>
-                <div class="product-card"><h4>📱 Transf.</h4><span>$${totalesDetalle.transferencia.toLocaleString()}</span></div>
+                <div class="product-card"><h4>📱 Transf.</h4><span style="color:#f87171;">-$${totalesDetalle.transferencia.toLocaleString()}</span></div>
             </div>
             <div class="inv-total" style="margin-top:20px;">
-                <div style="display:flex; justify-content:space-between;"><span>VENTAS:</span> <span>$${totalVentas.toLocaleString()}</span></div>
-                <div style="display:flex; justify-content:space-between; color:#ff4444;"><span>GASTOS:</span> <span>-$${totalGastos.toLocaleString()}</span></div>
+                <div style="display:flex; justify-content:space-between;"><span>VENTAS TOTALES:</span><span>$${totalVentas.toLocaleString()}</span></div>
+                <div style="display:flex; justify-content:space-between; color:#f87171;"><span>TRANSFERENCIAS (no en caja):</span><span>-$${totalTransf.toLocaleString()}</span></div>
+                <div style="display:flex; justify-content:space-between; color:#ff4444;"><span>GASTOS:</span><span>-$${totalGastos.toLocaleString()}</span></div>
                 <div style="display:flex; justify-content:space-between; border-top:1px solid #333; margin-top:10px; padding-top:10px; font-size:1.2rem;">
-                    <span>NETO:</span> <b class="accent">$${(totalVentas - totalGastos).toLocaleString()}</b>
+                    <span>NETO:</span><b class="accent">$${(totalVentas - totalGastos).toLocaleString()}</b>
                 </div>
             </div>
 
@@ -462,23 +583,27 @@ function renderVentasDia(container) {
         </div>`;
 }
 
+// --- DESGLOSE DETALLADO (PORCIONES + PIZZAS AGRUPADAS) ---
 function renderDesgloseDetallado() {
     viendoDesglose = true;
     const container = document.getElementById('module-content');
 
-    // Contar cada producto vendido
     const conteo = {};
     VentasHistoricas.forEach(v => {
         if (!v.items) return;
         v.items.forEach(item => {
             const key = item.nombre;
-            if (!conteo[key]) conteo[key] = { nombre: item.nombre, cantidad: 0, total: 0, categoria: item.categoria || 'otros' };
+            // Normalizar: porciones y pizzas van al grupo "pizzas_y_porciones"
+            let catNorm = item.categoria || 'otros';
+            if (catNorm === 'porciones') catNorm = 'pizzas_y_porciones';
+            if (catNorm === 'pizzas')    catNorm = 'pizzas_y_porciones';
+
+            if (!conteo[key]) conteo[key] = { nombre: item.nombre, cantidad: 0, total: 0, categoria: catNorm };
             conteo[key].cantidad++;
             conteo[key].total += item.precio;
         });
     });
 
-    // Agrupar por categoría
     const grupos = {};
     Object.values(conteo).forEach(item => {
         const cat = item.categoria;
@@ -486,7 +611,25 @@ function renderDesgloseDetallado() {
         grupos[cat].push(item);
     });
 
-    const iconos = { pizzas: '🥘', porciones: '🍕', crepes: '🥞', lasañas: '🍝', pastas: '🍽️', panzerottis: '🍔', bebidas: '🥤', otros: '📦' };
+    const iconos = {
+        pizzas_y_porciones: '🍕',
+        crepes: '🥞',
+        lasañas: '🍝',
+        pastas: '🍽️',
+        panzerottis: '🍔',
+        bebidas: '🥤',
+        otros: '📦'
+    };
+
+    const nombresCat = {
+        pizzas_y_porciones: 'PIZZAS Y PORCIONES',
+        crepes: 'CREPES',
+        lasañas: 'LASAÑAS',
+        pastas: 'PASTAS',
+        panzerottis: 'PANZEROTTIS',
+        bebidas: 'BEBIDAS',
+        otros: 'OTROS'
+    };
 
     let html = `
         <div class="glass-card" style="margin-bottom:15px; border-left:5px solid #7c3aed;">
@@ -494,19 +637,25 @@ function renderDesgloseDetallado() {
                 <h3 style="color:#a78bfa;">📊 DESGLOSE DETALLADO</h3>
                 <button class="btn-action" style="background:#333; padding:5px 12px;" onclick="viendoDesglose=false; openModule('ventas-dia')">← VOLVER</button>
             </div>
-            <small style="opacity:0.5;">Se actualiza automáticamente con cada venta</small>
+            <small style="opacity:0.5;">Se actualiza automaticamente con cada venta</small>
         </div>`;
 
     if (Object.keys(grupos).length === 0) {
-        html += `<div class="glass-card" style="text-align:center; opacity:0.5; padding:30px;">Sin ventas registradas aún</div>`;
+        html += `<div class="glass-card" style="text-align:center; opacity:0.5; padding:30px;">Sin ventas registradas aun</div>`;
     } else {
-        Object.entries(grupos).sort().forEach(([cat, items]) => {
+        // Orden preferido de categorías
+        const ordenCat = ['pizzas_y_porciones', 'crepes', 'lasañas', 'pastas', 'panzerottis', 'bebidas', 'otros'];
+        const catsOrdenadas = ordenCat.filter(c => grupos[c]);
+
+        catsOrdenadas.forEach(cat => {
+            const items = grupos[cat];
             const icono = iconos[cat] || '📦';
+            const nombreCat = nombresCat[cat] || cat.toUpperCase();
             const totalCat = items.reduce((s, i) => s + i.total, 0);
             html += `
             <div class="glass-card" style="margin-bottom:15px;">
                 <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
-                    <h4 class="accent">${icono} ${cat.toUpperCase()}</h4>
+                    <h4 class="accent">${icono} ${nombreCat}</h4>
                     <span style="color:var(--success); font-weight:bold;">$${totalCat.toLocaleString()}</span>
                 </div>
                 <table style="font-size:0.85rem; width:100%;">
@@ -530,19 +679,22 @@ function prepararCierre(ventas, gastos) {
     if (!confirm(`¿Sincronizar y cerrar caja?\nNeto: $${(ventas - gastos).toLocaleString()}`)) return;
 
     let desglose = { porciones: 0, pizzas: 0, crepes: 0, lasañas: 0, pastas: 0, panzerotti: 0, bebidas: 0, transferencia: 0 };
-    
+
     VentasHistoricas.forEach(v => {
-        if(v.metodo === 'Transferencia') desglose.transferencia += v.total;
-        v.items.forEach(item => {
-            const cat = item.categoria || "otros";
-            if (cat === "porciones") desglose.porciones += item.precio;
-            else if (cat === "pizzas") desglose.pizzas += item.precio;
-            else if (cat === "crepes") desglose.crepes += item.precio;
-            else if (cat === "lasañas") desglose.lasañas += item.precio;
-            else if (cat === "pastas") desglose.pastas += item.precio;
-            else if (cat === "panzerottis") desglose.panzerotti += item.precio;
-            else if (cat === "bebidas") desglose.bebidas += item.precio;
-        });
+        if (v.metodo === 'Transferencia') desglose.transferencia += v.total;
+        else if (v.metodo === 'Mixto') desglose.transferencia += (v.pagoTransferencia || 0);
+        if (v.items) {
+            v.items.forEach(item => {
+                const cat = item.categoria || "otros";
+                if (cat === "porciones")        desglose.porciones  += item.precio;
+                else if (cat === "pizzas")      desglose.pizzas     += item.precio;
+                else if (cat === "crepes")      desglose.crepes     += item.precio;
+                else if (cat === "lasañas")     desglose.lasañas    += item.precio;
+                else if (cat === "pastas")      desglose.pastas     += item.precio;
+                else if (cat === "panzerottis") desglose.panzerotti += item.precio;
+                else if (cat === "bebidas")     desglose.bebidas    += item.precio;
+            });
+        }
     });
 
     const fechaISO = new Date().toISOString().split('T')[0];
@@ -555,33 +707,26 @@ function prepararCierre(ventas, gastos) {
         timestamp: firebase.database.ServerValue.TIMESTAMP
     };
 
-    // 1. Guardar el resumen en el historial permanente
     database.ref('paolos_historial').push(nuevoCierre)
-        .then(() => {
-            alert("✅ Caja cerrada y sincronizada en la nube");
-        })
-        .catch((error) => {
-            alert("❌ Error al sincronizar: " + error.message);
-        })
+        .then(() => alert("✅ Caja cerrada y sincronizada en la nube"))
+        .catch((error) => alert("❌ Error al sincronizar: " + error.message))
         .finally(() => {
-            // 2. LIMPIEZA EN FIREBASE (Para que todos los dispositivos se pongan en cero)
             database.ref('paolos_cuentas_activas').set({});
             database.ref('paolos_ventas_actuales').remove();
             database.ref('paolos_gastos_actuales').remove();
-            database.ref('paolos_caja_estado').set({ abierta: false }); // Cierra caja en todos los dispositivos
+            database.ref('paolos_caja_estado').set({ abierta: false });
 
-            // 3. LIMPIEZA LOCAL
-            VentasHistoricas = []; 
-            Gastos = []; 
-            Cuentas = {}; 
+            VentasHistoricas = [];
+            Gastos = [];
+            Cuentas = {};
             cajaAbierta = false;
             CajaActual = { base: 0, fecha: null, horaApertura: null };
-    
+
             localStorage.removeItem('paolos_caja_abierta');
             localStorage.removeItem('paolos_caja_datos');
             localStorage.removeItem('paolos_ventas_turno');
             localStorage.removeItem('paolos_gastos_turno');
-            
+
             showMenu();
         });
 }
@@ -590,7 +735,6 @@ function prepararCierre(ventas, gastos) {
 function renderStats(container) {
     const hoy = new Date().toISOString().split('T')[0];
     const haceSieteDias = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
-
     container.innerHTML = `
         <div class="glass-card" style="margin-bottom:20px;">
             <h3 class="accent">FILTRAR RANGO (NUBE)</h3>
@@ -611,13 +755,13 @@ function updateStatsFilter() {
     const resultsContainer = document.getElementById('stats-results');
 
     const filtrados = HistorialCierres.filter(c => c.fecha >= desde && c.fecha <= hasta);
-    const totalV = filtrados.reduce((s, c) => s + (Number(c.ventasTotal) || 0), 0);
+    const totalV   = filtrados.reduce((s, c) => s + (Number(c.ventasTotal) || 0), 0);
     const totalGas = filtrados.reduce((s, c) => s + (Number(c.gastos) || 0), 0);
-    const totalN = totalV - totalGas;
+    const totalN   = totalV - totalGas;
 
     let html = `
         <div class="glass-card" style="margin-bottom:20px; border-bottom: 3px solid var(--success);">
-            <h3 class="accent">RESUMEN DEL PERÍODO</h3>
+            <h3 class="accent">RESUMEN DEL PERIODO</h3>
             <div class="products-grid" style="margin-top:15px;">
                 <div class="product-card"><h4>Ventas</h4><span class="price">$${totalV.toLocaleString()}</span></div>
                 <div class="product-card"><h4>Gastos</h4><span class="price" style="color:#ff4444;">$${totalGas.toLocaleString()}</span></div>
@@ -637,10 +781,12 @@ function updateStatsFilter() {
     if (filtrados.length === 0) {
         html += `<tr><td colspan="3" style="text-align:center; padding:20px;">Sin registros</td></tr>`;
     } else {
-        filtrados.sort((a,b) => b.fecha.localeCompare(a.fecha)).forEach(c => {
-            const d = c.detalle || { porciones: 0, pizzas: 0, crepes: 0, lasañas: 0, bebidas: 0 };
+        filtrados.sort((a, b) => b.fecha.localeCompare(a.fecha)).forEach(c => {
+            const d = c.detalle || {};
+            // Botón borrar día individual - solo admin
             const btnBorrar = userRole === 'admin'
-                ? `<button onclick="borrarDiaHistorial('${c.id}')" title="Borrar este día" style="background:none; border:none; cursor:pointer; font-size:1rem; color:#ff4444;">🗑️</button>`
+                ? `<button onclick="borrarDiaHistorial('${c.id}')" title="Borrar este dia"
+                    style="background:none; border:none; cursor:pointer; font-size:1rem; color:#ff4444; margin-left:6px;">🗑️</button>`
                 : '';
             html += `<tr>
                 <td><b>${c.fecha}</b>${btnBorrar}</td>
@@ -654,112 +800,180 @@ function updateStatsFilter() {
             </tr>`;
         });
     }
+
     resultsContainer.innerHTML = html + `</tbody></table></div>
-        <button class="btn-action" style="margin-top:20px; background:#444; width:100%;" onclick="borrarHistorial()">🗑️ LIMPIAR HISTORIAL</button>
+        <button class="btn-action" style="margin-top:20px; background:#444; width:100%;" onclick="borrarHistorial()">🗑️ LIMPIAR HISTORIAL COMPLETO</button>
     </div>`;
 }
 
-// --- LOGICA DE MESAS Y PEDIDOS ---
+// --- MESAS Y PEDIDOS ---
 function renderTables(container) {
     let html = '<div class="tables-grid">';
+
+    // 8 mesas con total visible
     for (let i = 1; i <= 8; i++) {
         const mId = `Mesa ${i}`;
-        const ocup = Cuentas[mId] && Cuentas[mId].length > 0;
-        html += `<button class="mesa-btn ${ocup ? 'active-order' : ''}" onclick="selectDestino('${mId}')">MESA ${i}</button>`;
+        const items = Cuentas[mId] || [];
+        const ocup = items.length > 0;
+        const total = items.reduce((s, it) => s + it.precio, 0);
+        html += `<button class="mesa-btn ${ocup ? 'active-order' : ''}" onclick="selectDestino('${mId}')">
+            <span style="font-size:1rem; font-weight:bold;">MESA ${i}</span>
+            ${ocup ? `<span style="display:block; font-size:0.75rem; color:var(--accent); margin-top:4px;">$${total.toLocaleString()}</span>` : ''}
+        </button>`;
     }
-    html += `<div class="delivery-group">
-        <button class="domicilio-btn" onclick="selectDestino('Domicilio')">🛵 DOMICILIO</button>
-        <button class="llevar-btn" onclick="selectDestino('Llevar')">🛍️ LLEVAR</button>
-    </div></div>`;
+
+    // Domicilios activos
+    const domicilios = Object.keys(Cuentas).filter(k => k.startsWith('Domicilio'));
+    domicilios.forEach(d => {
+        const items = Cuentas[d] || [];
+        const total = items.reduce((s, it) => s + it.precio, 0);
+        html += `<button class="domicilio-btn active-order" onclick="selectDestino('${d}')" style="position:relative;">
+            <span>🛵 ${d}</span>
+            <span style="display:block; font-size:0.75rem; color:var(--accent); margin-top:4px;">$${total.toLocaleString()}</span>
+        </button>`;
+    });
+
+    // Llevar activos
+    const llevares = Object.keys(Cuentas).filter(k => k.startsWith('Llevar'));
+    llevares.forEach(l => {
+        const items = Cuentas[l] || [];
+        const total = items.reduce((s, it) => s + it.precio, 0);
+        html += `<button class="llevar-btn active-order" onclick="selectDestino('${l}')" style="position:relative;">
+            <span>🛍️ ${l}</span>
+            <span style="display:block; font-size:0.75rem; color:var(--accent); margin-top:4px;">$${total.toLocaleString()}</span>
+        </button>`;
+    });
+
+    // Botones para crear nuevos domicilio / llevar
+    html += `<div class="delivery-group" style="grid-column: span 2; display:flex; gap:10px; margin-top:4px;">
+        <button class="domicilio-btn" onclick="crearNuevoDestino('Domicilio')" style="flex:1;">🛵 + DOMICILIO</button>
+        <button class="llevar-btn"    onclick="crearNuevoDestino('Llevar')"    style="flex:1;">🛍️ + LLEVAR</button>
+    </div>`;
+
+    html += `</div>`;
     container.innerHTML = html;
 }
 
+// Crea un nuevo destino numerado (Domicilio 1, Domicilio 2, ...)
+function crearNuevoDestino(tipo) {
+    const existentes = Object.keys(Cuentas).filter(k => k.startsWith(tipo));
+    let num = 1;
+    while (existentes.includes(`${tipo} ${num}`)) num++;
+    const nuevoId = `${tipo} ${num}`;
+    Cuentas[nuevoId] = [];
+    guardarEstadoLocal();
+    syncCuentasToFirebase();
+    selectDestino(nuevoId);
+}
+
 function selectDestino(destino) {
-    const container = document.getElementById('module-content');
+    // Ocultar selector de mesas, mostrar área de trabajo de pedido en pantalla completa
+    document.getElementById('module-selector').classList.add('hidden');
+    document.getElementById('work-area').classList.remove('hidden');
     document.getElementById('module-title').innerText = destino.toUpperCase();
     document.getElementById('btn-back-tables').classList.remove('hidden');
+
+    const container = document.getElementById('module-content');
     container.innerHTML = `
-        <div class="search-box"><input type="text" id="product-search" placeholder="🔍 Buscar..." onkeyup="filterItems('${destino}')"></div>
+        <div class="search-box">
+            <input type="text" id="product-search" placeholder="🔍 Buscar producto o bebida..." onkeyup="filterItems('${destino}')">
+        </div>
         <div class="categories-grid">
-            <button class="category-btn" onclick="renderProductsByCategory('porcion', '${destino}')">🍕 PORCIÓN</button>
+            <button class="category-btn" onclick="renderProductsByCategory('porcion', '${destino}')">🍕 PORCION</button>
             <button class="category-btn" onclick="renderProductsByCategory('pizzas_completa', '${destino}')">🥘 PIZZA C.</button>
             <button class="category-btn" onclick="renderProductsByCategory('crepes', '${destino}')">🥞 CREPES</button>
-            <button class="category-btn" onclick="renderProductsByCategory('lasañas', '${destino}')">🍝 LASAÑAS</button>
+            <button class="category-btn" onclick="renderProductsByCategory('lasañas', '${destino}')">🍝 LASANAS</button>
             <button class="category-btn" onclick="renderProductsByCategory('pastas', '${destino}')">🍽️ PASTAS</button>
             <button class="category-btn" onclick="renderProductsByCategory('panzerottis', '${destino}')">🍔 PANZEROTTI</button>
             <button class="category-btn" onclick="renderProductsByCategory('bebidas', '${destino}')">🥤 BEBIDAS</button>
         </div>
-        <div id="product-list-container"></div><div id="summary-container"></div>`;
+        <div id="product-list-container"></div>
+        <div id="summary-container"></div>`;
+
     renderOrderSummary(destino);
 }
+
+// --- BÚSQUEDA (incluye bebidas) ---
 function filterItems(dest) {
     const searchTerm = document.getElementById('product-search').value.toLowerCase().trim();
     const container = document.getElementById('product-list-container');
     const categoriesDiv = document.querySelector('.categories-grid');
 
-    if (searchTerm === "") { 
-        categoriesDiv.classList.remove('hidden'); 
-        container.innerHTML = ""; 
-        return; 
+    if (searchTerm === "") {
+        categoriesDiv.classList.remove('hidden');
+        container.innerHTML = "";
+        return;
     }
 
     categoriesDiv.classList.add('hidden');
     let html = `<div class="products-grid">`;
     let found = false;
 
-    // --- 1. BUSCAR EN PORCIONES (SABORES) ---
-    // Recorremos los sabores para ofrecer la venta por porción ($7.000)
+    // 🍕 PORCIONES
     DB.sabores_pizzas.forEach(sabor => {
         if (sabor.nombre.toLowerCase().includes(searchTerm)) {
             found = true;
             html += `
-            <div class="product-card search-result" style="border: 1px solid var(--warning); position: relative;">
-                <small style="color: var(--warning); font-size: 0.6rem; letter-spacing: 1px;">🍕 PORCIÓN</small>
+            <div class="product-card search-result" style="border: 1px solid var(--warning);">
+                <small style="color: var(--warning); font-size: 0.6rem; letter-spacing: 1px;">🍕 PORCION</small>
                 <h4 style="margin: 8px 0;">${sabor.nombre}</h4>
                 <span class="price" style="font-size: 0.9rem; margin-bottom: 10px;">$${sabor.precio.toLocaleString()}</span>
-                <button class="btn-action" style="background: var(--warning); color: #000; border: none;" 
-                    onclick="addItemToOrder('${dest}', 'Porción ${sabor.nombre}', ${sabor.precio})">
-                    AÑADIR
-                </button>
+                <button class="btn-action" style="background: var(--warning); color: #000; border: none;"
+                    onclick="addItemToOrder('${dest}', 'Porcion ${sabor.nombre}', ${sabor.precio}, 'porciones')">ANADIR</button>
             </div>`;
         }
     });
 
-    // --- 2. BUSCAR EN EL RESTO DEL MENÚ (LO QUE YA TENÍAS) ---
+    // 🥤 BEBIDAS
+    DB.bebidas_inv.forEach(b => {
+        if (b.nombre.toLowerCase().includes(searchTerm)) {
+            found = true;
+            const agotado = b.cantidad <= 0;
+            html += `
+            <div class="product-card search-result" style="border: 1px solid #22d3ee; ${agotado ? 'opacity:0.5;' : ''}">
+                <small style="color: #22d3ee; font-size: 0.6rem; letter-spacing: 1px;">🥤 BEBIDA${agotado ? ' — AGOTADA' : ' · Stock: ' + b.cantidad}</small>
+                <h4 style="margin: 8px 0;">${b.nombre}</h4>
+                <span class="price" style="font-size: 0.9rem; margin-bottom: 10px;">$${(b.precio || 0).toLocaleString()}</span>
+                <button class="btn-action" style="background:#22d3ee; color:#000; border:none;"
+                    onclick="sellBebida('${dest}', ${b.id})" ${agotado ? 'disabled' : ''}>${agotado ? 'N/A' : 'ANADIR'}</button>
+            </div>`;
+        }
+    });
+
+    // 🍽️ RESTO DEL MENÚ
     for (const [catKey, items] of Object.entries(DB.menu)) {
-        if (catKey === 'bebidas') continue; 
-        
+        if (catKey === 'bebidas') continue;
         items.forEach(p => {
             if (p.nombre.toLowerCase().includes(searchTerm)) {
                 found = true;
-                
-                // Caso especial Lasañas (3 tamaños)
                 if (catKey === 'lasañas') {
-                    const nombreEscapado = p.nombre.replace(/'/g, "\\'");
+                    const ne = p.nombre.replace(/'/g, "\\'");
                     html += `
                     <div class="product-card search-result">
-                        <small style="color: var(--accent); font-size: 0.6rem;">🍝 LASAÑA</small>
+                        <small style="color: var(--accent); font-size: 0.6rem;">🍝 LASANA</small>
                         <h4>${p.nombre}</h4>
-                        <div style="display:grid; grid-template-columns: 1fr 1fr 1fr; gap:5px; margin-top: 10px;">
-                            <button class="category-btn" onclick="addItemToOrder('${dest}', '${nombreEscapado} (P)', ${p.precio_p})">P</button>
-                            <button class="category-btn" onclick="addItemToOrder('${dest}', '${nombreEscapado} (M)', ${p.precio_m})">M</button>
-                            <button class="category-btn" onclick="addItemToOrder('${dest}', '${nombreEscapado} (F)', ${p.precio_f})">F</button>
+                        <div style="display:grid; grid-template-columns: 1fr 1fr 1fr; gap:5px; margin-top:10px;">
+                            <button class="category-btn" onclick="addItemToOrder('${dest}', '${ne} (P)', ${p.precio_p}, 'lasañas')">P $${p.precio_p.toLocaleString()}</button>
+                            <button class="category-btn" onclick="addItemToOrder('${dest}', '${ne} (M)', ${p.precio_m || p.precio_p}, 'lasañas')">M $${(p.precio_m || p.precio_p).toLocaleString()}</button>
+                            <button class="category-btn" onclick="addItemToOrder('${dest}', '${ne} (F)', ${p.precio_f}, 'lasañas')">F $${p.precio_f.toLocaleString()}</button>
                         </div>
                     </div>`;
-                } 
-                // Resto de productos (Pizzas completas, etc.)
-                else {
-                    const nombreEscapado = p.nombre.replace(/'/g, "\\'");
-                    const action = (catKey === 'pizzas_completa') ? 
-                        `onclick="renderPizzaFlavorSelector('${dest}')"` : 
-                        `onclick="addItemToOrder('${dest}', '${nombreEscapado}', ${p.precio})"`;
-                    
+                } else if (catKey === 'pizzas_completa') {
+                    html += `
+                    <div class="product-card search-result">
+                        <small style="color: var(--accent); font-size: 0.6rem;">🥘 PIZZA COMPLETA</small>
+                        <h4>${p.nombre}</h4>
+                        <button class="btn-action" onclick="renderPizzaFlavorSelector('${dest}')">ELEGIR SABOR</button>
+                    </div>`;
+                } else {
+                    const ne = p.nombre.replace(/'/g, "\\'");
+                    const cat2 = catKey === 'panzerottis' ? 'panzerottis' : catKey === 'pastas' ? 'pastas' : catKey === 'crepes' ? 'crepes' : catKey;
                     html += `
                     <div class="product-card search-result">
                         <small style="color: var(--accent); font-size: 0.6rem;">${catKey.toUpperCase()}</small>
                         <h4>${p.nombre}</h4>
                         <span class="price">$${p.precio.toLocaleString()}</span>
-                        <button class="btn-action" ${action}>AÑADIR</button>
+                        <button class="btn-action" onclick="addItemToOrder('${dest}', '${ne}', ${p.precio}, '${cat2}')">ANADIR</button>
                     </div>`;
                 }
             }
@@ -768,24 +982,20 @@ function filterItems(dest) {
 
     if (!found) {
         html += `
-        <div style="grid-column: span 2; text-align: center; padding: 40px; opacity: 0.5;">
-            <p>No se encontraron productos o porciones</p>
+        <div style="grid-column: span 2; text-align:center; padding:40px; opacity:0.5;">
+            <p>No se encontraron productos</p>
             <small>Intenta con otra palabra clave</small>
         </div>`;
     }
 
-    html += `</div>`;
-    container.innerHTML = html;
+    container.innerHTML = html + `</div>`;
 }
 
 function renderProductsByCategory(cat, dest) {
     document.getElementById('product-search').value = "";
     const container = document.getElementById('product-list-container');
 
-    if (cat === 'porcion') { 
-        renderFlavorSelector(container, dest); 
-        return; 
-    }
+    if (cat === 'porcion') { renderFlavorSelector(container, dest); return; }
 
     let html = `<div class="products-grid">`;
 
@@ -797,71 +1007,46 @@ function renderProductsByCategory(cat, dest) {
                 <h4>${p.nombre}</h4>
                 <p class="accent" style="margin:5px 0;">$${(p.precio || 0).toLocaleString()}</p>
                 <button class="btn-action" onclick="sellBebida('${dest}', ${p.id})" ${agotado ? 'disabled' : ''}>
-                    ${agotado ? 'N/A' : 'AÑADIR'}
+                    ${agotado ? 'N/A' : 'ANADIR'}
                 </button>
             </div>`;
         });
-
     } else {
         DB.menu[cat].forEach(p => {
-
-            // 🍕 PIZZAS COMPLETAS
             if (cat === 'pizzas_completa') {
                 const tamClave = p.nombre.includes('Mini') ? 'mini' : p.nombre.includes('Pequeña') ? 'p' : p.nombre.includes('Mediana') ? 'm' : 'g';
                 html += `<div class="product-card">
                     <h4>${p.nombre}</h4>
-                    <button class="btn-action" onclick="renderPizzaFlavorSelector('${dest}', '${tamClave}')">
-                        SABORES
-                    </button>
+                    <button class="btn-action" onclick="renderPizzaFlavorSelector('${dest}', '${tamClave}')">SABORES</button>
                 </div>`;
-            }
-
-            // 🍝 LASAÑAS (con tamaños)
-            else if (cat === 'lasañas') {
-                const nombreEscapado = p.nombre.replace(/'/g, "\\'");
+            } else if (cat === 'lasañas') {
+                const ne = p.nombre.replace(/'/g, "\\'");
                 html += `<div class="product-card">
                     <h4>${p.nombre}</h4>
                     <div style="display:grid; gap:5px;">
-                        <button class="category-btn" onclick="addItemToOrder('${dest}', '${nombreEscapado} (P)', ${p.precio_p}, 'lasañas')">P: $${p.precio_p}</button>
-                        <button class="category-btn" onclick="addItemToOrder('${dest}', '${nombreEscapado} (M)', ${p.precio_m}, 'lasañas')">M: $${p.precio_m}</button>
-                        <button class="category-btn" onclick="addItemToOrder('${dest}', '${nombreEscapado} (F)', ${p.precio_f}, 'lasañas')">F: $${p.precio_f}</button>
+                        <button class="category-btn" onclick="addItemToOrder('${dest}', '${ne} (P)', ${p.precio_p}, 'lasañas')">P: $${p.precio_p.toLocaleString()}</button>
+                        <button class="category-btn" onclick="addItemToOrder('${dest}', '${ne} (M)', ${p.precio_m || p.precio_p}, 'lasañas')">M: $${(p.precio_m || p.precio_p).toLocaleString()}</button>
+                        <button class="category-btn" onclick="addItemToOrder('${dest}', '${ne} (F)', ${p.precio_f}, 'lasañas')">F: $${p.precio_f.toLocaleString()}</button>
                     </div>
                 </div>`;
-            }
-
-           // --- DENTRO DE renderProductsByCategory(cat, dest) ---
-
-// 🍽️ PASTAS (precio normal)
-else if (cat === 'pastas') {
-    const nombreEscapado = p.nombre.replace(/'/g, "\\'");
-    html += `<div class="product-card">
-        <h4>${p.nombre}</h4>
-        <span class="price">$${p.precio.toLocaleString()}</span>
-        <button class="btn-action" onclick="addItemToOrder('${dest}', '${nombreEscapado}', ${p.precio}, 'pastas')">
-            AÑADIR
-        </button>
-    </div>`;
-}
-
-// 🍔 PANZEROTTIS (precio normal)
-else if (cat === 'panzerottis') {
-    html += `<div class="product-card">
-        <h4>${p.nombre}</h4>
-        <span class="price">$${p.precio.toLocaleString()}</span>
-        <button class="btn-action" onclick="addItemToOrder('${dest}', '${p.nombre}', ${p.precio}, 'panzerottis')">
-            AÑADIR
-        </button>
-    </div>`;
-}
-
-            // 🔥 OTROS PRODUCTOS (Crepes, etc.)
-            else {
-                const nombreEscapado = p.nombre.replace(/'/g, "\\'");
+            } else if (cat === 'pastas') {
+                const ne = p.nombre.replace(/'/g, "\\'");
                 html += `<div class="product-card">
                     <h4>${p.nombre}</h4>
-                    <button class="btn-action" onclick="addItemToOrder('${dest}', '${nombreEscapado}', ${p.precio}, '${cat}')">
-                        AÑADIR
-                    </button>
+                    <span class="price">$${p.precio.toLocaleString()}</span>
+                    <button class="btn-action" onclick="addItemToOrder('${dest}', '${ne}', ${p.precio}, 'pastas')">ANADIR</button>
+                </div>`;
+            } else if (cat === 'panzerottis') {
+                html += `<div class="product-card">
+                    <h4>${p.nombre}</h4>
+                    <span class="price">$${p.precio.toLocaleString()}</span>
+                    <button class="btn-action" onclick="addItemToOrder('${dest}', '${p.nombre}', ${p.precio}, 'panzerottis')">ANADIR</button>
+                </div>`;
+            } else {
+                const ne = p.nombre.replace(/'/g, "\\'");
+                html += `<div class="product-card">
+                    <h4>${p.nombre}</h4>
+                    <button class="btn-action" onclick="addItemToOrder('${dest}', '${ne}', ${p.precio}, '${cat}')">ANADIR</button>
                 </div>`;
             }
         });
@@ -870,13 +1055,6 @@ else if (cat === 'panzerottis') {
     container.innerHTML = html + `</div>`;
 }
 
-// --- SABORES Y PORCIONES ---
-// =====================================================
-// SELECTOR DE PIZZAS COMPLETAS — con tamaño y precio
-// =====================================================
-
-// Precios fijos por tipo y tamaño (fuente de verdad)
-// Precios según tipo de sabor y tamaño
 function getPrecioSabor(sabor, tamano) {
     const p = sabor.tipo === 'tradicional'
         ? { mini: 28000, p: 40000, m: 57000, g: 75000 }
@@ -892,9 +1070,9 @@ function renderPizzaFlavorSelector(dest, tamano) {
     const sabores = [
         { id: 21, nombre: "Hawaiana",            tipo: "tradicional" },
         { id: 22, nombre: "Pollo Champiñones",   tipo: "tradicional" },
-        { id: 23, nombre: "Pollo Jamón",         tipo: "tradicional" },
+        { id: 23, nombre: "Pollo Jamon",         tipo: "tradicional" },
         { id: 24, nombre: "Pollo Tocineta",      tipo: "tradicional" },
-        { id: 7,  nombre: "Maíz Tocineta",       tipo: "tradicional" },
+        { id: 7,  nombre: "Maiz Tocineta",       tipo: "tradicional" },
         { id: 25, nombre: "Napolitana",          tipo: "tradicional" },
         { id: 26, nombre: "Vegetariana",         tipo: "tradicional" },
         { id: 27, nombre: "Bocadillo y Queso",   tipo: "tradicional" },
@@ -912,10 +1090,10 @@ function renderPizzaFlavorSelector(dest, tamano) {
         { id: 5,  nombre: "BBQ",                 tipo: "especialidad" },
         { id: 10, nombre: "Romana",              tipo: "especialidad" },
         { id: 18, nombre: "Rumbera",             tipo: "especialidad" },
-        { id: 19, nombre: "Caribeña",            tipo: "especialidad" },
+        { id: 19, nombre: "Caribena",            tipo: "especialidad" },
         { id: 9,  nombre: "De la Huerta",        tipo: "especialidad" },
-        { id: 20, nombre: "Pollo Maíz Tocineta", tipo: "especialidad" },
-        { id: 4,  nombre: "Pollo Camarón",       tipo: "especialidad" },
+        { id: 20, nombre: "Pollo Maiz Tocineta", tipo: "especialidad" },
+        { id: 4,  nombre: "Pollo Camaron",       tipo: "especialidad" },
         { id: 1,  nombre: "Peperoni Picante",    tipo: "especialidad" },
     ];
     window._pizzaSaboresLista = sabores;
@@ -924,7 +1102,7 @@ function renderPizzaFlavorSelector(dest, tamano) {
 
     let html = `<div style="padding:10px;">
         <h4 class="accent" style="margin-bottom:4px;">🍕 ${tamNombre} — ELIGE SABOR(ES)</h4>
-        <p style="font-size:0.75rem; opacity:0.7; margin-bottom:10px;">Máx. 3 sabores. 3ro suma $3.000. Se cobra el más caro.</p>
+        <p style="font-size:0.75rem; opacity:0.7; margin-bottom:10px;">Max. 3 sabores. 3ro suma $3.000. Se cobra el mas caro.</p>
         <div id="pizza-preview" style="text-align:center; font-weight:bold; color:var(--accent); margin-bottom:10px; min-height:22px;"></div>
         <div class="flavor-list">`;
 
@@ -946,7 +1124,6 @@ function renderPizzaFlavorSelector(dest, tamano) {
     container.innerHTML = html;
 }
 
-
 function togglePizzaSabor(id) {
     const sel = window._pizzaSeleccionados || [];
     const idx = sel.indexOf(id);
@@ -957,7 +1134,7 @@ function togglePizzaSabor(id) {
         if (btn) { btn.style.background = 'var(--glass)'; btn.style.color = ''; btn.textContent = '○'; }
         if (row) row.style.background = '';
     } else {
-        if (sel.length >= 3) { alert('Máximo 3 sabores por pizza.'); return; }
+        if (sel.length >= 3) { alert('Maximo 3 sabores por pizza.'); return; }
         window._pizzaSeleccionados.push(id);
         if (btn) { btn.style.background = 'var(--accent)'; btn.style.color = '#000'; btn.textContent = '✓'; }
         if (row) row.style.background = 'rgba(255,180,0,0.07)';
@@ -989,18 +1166,8 @@ function confirmarPizzaCompleta(dest) {
     const tamNombre = { mini: 'Mini', p: 'Pequeña', m: 'Mediana', g: 'Grande' }[t];
     addItemToOrder(dest, 'Pizza ' + tamNombre + ' ' + sel.map(s => s.nombre).join('/'), precio, 'pizzas');
     window._pizzaTamano = null;
-    window._pizzaSabores = {};
+    window._pizzaSeleccionados = [];
 }
-
-
-
-
-
-
-
-// =====================================================
-// SELECTOR DE PORCIONES — precio $7.000 c/u
-// =====================================================
 
 function renderFlavorSelector(container, dest) {
     let html = `<div class="flavor-list">`;
@@ -1026,116 +1193,148 @@ function updateFlavorQty(id, d) {
 function savePortions(dest) {
     DB.sabores_pizzas.forEach(s => {
         const v = parseInt(document.getElementById(`f-${s.id}`).innerText);
-        for(let i=0; i<v; i++) addItemToOrder(dest, `Porción ${s.nombre}`, s.precio, 'porciones');
+        for (let i = 0; i < v; i++) addItemToOrder(dest, `Porcion ${s.nombre}`, s.precio, 'porciones');
         document.getElementById(`f-${s.id}`).innerText = 0;
     });
 }
 
-// --- RESUMEN Y FINALIZAR CUENTA ---
+// --- RESUMEN Y PAGO (con soporte pago mixto) ---
 function renderOrderSummary(dest) {
     const items = Cuentas[dest] || [];
-    let total = items.reduce((s, i) => s + i.precio, 0);
+    const total = items.reduce((s, i) => s + i.precio, 0);
     const grouped = items.reduce((acc, it, idx) => {
         if (!acc[it.nombre]) acc[it.nombre] = { n: it.nombre, p: it.precio, c: 0, ids: [] };
-        acc[it.nombre].c++; acc[it.nombre].ids.push(idx); return acc;
+        acc[it.nombre].c++;
+        acc[it.nombre].ids.push(idx);
+        return acc;
     }, {});
 
     let html = `<div class="order-summary"><div class="summary-list">`;
     Object.values(grouped).forEach(it => {
         html += `<div class="summary-item"><span><b>${it.c}x</b> ${it.n}</span>
             <div style="display:flex; gap:10px;"><span>$${(it.p * it.c).toLocaleString()}</span>
-            <button class="btn-del-item" onclick="removeItem('${dest}', ${it.ids[it.ids.length-1]})">✕</button></div></div>`;
+            <button class="btn-del-item" onclick="removeItem('${dest}', ${it.ids[it.ids.length - 1]})">✕</button></div></div>`;
     });
-    
-    html += `</div><div class="payment-selector">
-            <button class="pay-btn ${metodoPagoSeleccionado === 'Efectivo' ? 'selected' : ''}" onclick="setMetodoPago('Efectivo', '${dest}')">💵 EFECTIVO</button>
-            <button class="pay-btn ${metodoPagoSeleccionado === 'Transferencia' ? 'selected' : ''}" onclick="setMetodoPago('Transferencia', '${dest}')">📱 TRANSF.</button>
-        </div><div class="summary-total"><span>TOTAL</span><span>$${total.toLocaleString()}</span></div>
-        
+
+    // Selector de método de pago
+    html += `</div>
+        <div class="payment-selector">
+            <button class="pay-btn ${metodoPagoSeleccionado === 'Efectivo' ? 'selected' : ''}"
+                onclick="setMetodoPago('Efectivo', '${dest}')">💵 EFECTIVO</button>
+            <button class="pay-btn ${metodoPagoSeleccionado === 'Transferencia' ? 'selected' : ''}"
+                onclick="setMetodoPago('Transferencia', '${dest}')">📱 TRANSF.</button>
+            <button class="pay-btn ${metodoPagoSeleccionado === 'Mixto' ? 'selected' : ''}"
+                onclick="setMetodoPago('Mixto', '${dest}')" style="grid-column: span 2; background: ${metodoPagoSeleccionado === 'Mixto' ? 'var(--accent)' : 'var(--glass)'};">
+                💵📱 MIXTO (EFECTIVO + TRANSF.)
+            </button>
+        </div>`;
+
+    // Panel de pago mixto
+    if (metodoPagoSeleccionado === 'Mixto') {
+        html += `
+        <div style="background:rgba(255,180,0,0.08); border:1px solid var(--accent); border-radius:10px; padding:12px; margin-top:8px;">
+            <p style="font-size:0.8rem; opacity:0.7; margin-bottom:8px;">Total: <b>$${total.toLocaleString()}</b> — Ingresa el monto en efectivo:</p>
+            <div style="display:flex; gap:8px; align-items:center;">
+                <input type="number" id="pago-efectivo-mixto" placeholder="$ Efectivo" class="inv-input-inline"
+                    style="flex:1;" oninput="calcularResto(${total})" value="${metodoPagoMixto.efectivo || ''}">
+                <span style="opacity:0.7;">Transf:</span>
+                <b id="resto-transferencia" class="accent">$${metodoPagoMixto.transferencia > 0 ? metodoPagoMixto.transferencia.toLocaleString() : '---'}</b>
+            </div>
+        </div>`;
+    }
+
+    html += `
+        <div class="summary-total"><span>TOTAL</span><span>$${total.toLocaleString()}</span></div>
+
         <button class="btn-action" style="background:#ffc107; color:#000; margin-bottom:10px; font-weight:bold;" onclick="imprimirComandaCocina('${dest}')">
             👩‍🍳 ENVIAR A COCINA
         </button>
+        <button class="btn-action" style="background:var(--success); color:#000;" onclick="clearOrder('${dest}')">FINALIZAR CUENTA</button>
+    </div>`;
 
-        <button class="btn-action" style="background:var(--success); color:#000;" onclick="clearOrder('${dest}')">FINALIZAR CUENTA</button></div>`;
-    
     document.getElementById('summary-container').innerHTML = html;
 }
 
-// CAMBIO AQUÍ: La función ahora recibe el destino directamente y refresca el resumen
+function calcularResto(total) {
+    const ef = parseFloat(document.getElementById('pago-efectivo-mixto').value) || 0;
+    const resto = total - ef;
+    document.getElementById('resto-transferencia').innerText = resto >= 0 ? '$' + resto.toLocaleString() : '⚠️ Excede total';
+    metodoPagoMixto.efectivo = ef;
+    metodoPagoMixto.transferencia = Math.max(0, resto);
+}
+
 function setMetodoPago(m, dest) {
     metodoPagoSeleccionado = m;
+    if (m !== 'Mixto') metodoPagoMixto = { activo: false, efectivo: 0, transferencia: 0 };
     renderOrderSummary(dest);
 }
 
-function clearOrder(dest) { 
+function clearOrder(dest) {
     const items = Cuentas[dest] || [];
     const total = items.reduce((s, i) => s + i.precio, 0);
     if (total === 0) return;
-    if (confirm(`¿Finalizar ${dest}?`)) { 
-        const nuevaVenta = { 
-            destino: dest, 
-            total: total, 
-            metodo: metodoPagoSeleccionado, 
-            hora: new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}), 
-            items: [...items] 
+
+    // Validar pago mixto
+    if (metodoPagoSeleccionado === 'Mixto') {
+        const ef = parseFloat(document.getElementById('pago-efectivo-mixto')?.value) || 0;
+        const transf = total - ef;
+        if (ef < 0 || transf < 0) {
+            alert("⚠️ Los montos del pago mixto no son válidos.");
+            return;
+        }
+        metodoPagoMixto = { activo: true, efectivo: ef, transferencia: transf };
+    }
+
+    if (confirm(`¿Finalizar ${dest}?\nTotal: $${total.toLocaleString()}`)) {
+        const nuevaVenta = {
+            destino: dest,
+            total: total,
+            metodo: metodoPagoSeleccionado,
+            pagoEfectivo: metodoPagoSeleccionado === 'Mixto' ? metodoPagoMixto.efectivo : (metodoPagoSeleccionado === 'Efectivo' ? total : 0),
+            pagoTransferencia: metodoPagoSeleccionado === 'Mixto' ? metodoPagoMixto.transferencia : (metodoPagoSeleccionado === 'Transferencia' ? total : 0),
+            hora: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+            items: [...items]
         };
 
-        // Sincronizar venta en la nube
         database.ref('paolos_ventas_actuales').push(nuevaVenta);
 
-        Cuentas[dest] = []; 
-        syncCuentasToFirebase(); 
-        metodoPagoSeleccionado = 'Efectivo'; 
-        openModule('pizzas'); 
-    } 
+        Cuentas[dest] = [];
+        syncCuentasToFirebase();
+        metodoPagoSeleccionado = 'Efectivo';
+        metodoPagoMixto = { activo: false, efectivo: 0, transferencia: 0 };
+        openModule('pizzas');
+    }
 }
 
 function addItemToOrder(dest, nombre, precio, categoria = "otros") {
-    // 1. Validar que exista la mesa/destino en el objeto Cuentas
-    if (!Cuentas[dest]) {
-        Cuentas[dest] = [];
-    }
-
-    // 2. Agregar el producto con su categoría para los reportes
-    Cuentas[dest].push({
-        nombre: nombre,
-        precio: precio,
-        categoria: categoria 
-    });
-
-    // 3. Guardar cambios en el almacenamiento local
+    if (!Cuentas[dest]) Cuentas[dest] = [];
+    Cuentas[dest].push({ nombre, precio, categoria });
     guardarEstadoLocal();
-    
-    // 4. Sincronizar con Firebase en tiempo real
     syncCuentasToFirebase();
-
-    // 5. Refrescar la interfaz
     renderOrderSummary(dest);
-    
-    console.log(`Añadido: ${nombre} (${categoria}) a ${dest}`);
 }
-function removeItem(dest, index) { 
+
+function removeItem(dest, index) {
     Cuentas[dest].splice(index, 1);
     guardarEstadoLocal();
     syncCuentasToFirebase();
-    renderOrderSummary(dest); 
+    renderOrderSummary(dest);
 }
 
 function abrirCaja() {
     const base = parseInt(document.getElementById('base-caja').value);
     if (!isNaN(base) && base >= 0) {
         cajaAbierta = true;
-        CajaActual = { 
-            base, 
-            fecha: new Date().toLocaleDateString('es-CO'), 
-            horaApertura: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) 
+        CajaActual = {
+            base,
+            fecha: new Date().toLocaleDateString('es-CO'),
+            horaApertura: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
         };
         guardarEstadoLocal();
         Cuentas = {};
         syncCuentasToFirebase();
-        // Sincronizar estado de caja en Firebase para todos los dispositivos
-        database.ref('paolos_caja_estado').set({ 
-            abierta: true, 
+        database.ref('paolos_caja_estado').set({
+            abierta: true,
             base: CajaActual.base,
             fecha: CajaActual.fecha,
             horaApertura: CajaActual.horaApertura
@@ -1147,7 +1346,7 @@ function abrirCaja() {
 function sellBebida(dest, pId) {
     const item = DB.bebidas_inv.find(b => b.id == pId);
     if (item && item.cantidad > 0) {
-        item.cantidad--; 
+        item.cantidad--;
         syncInv();
         addItemToOrder(dest, item.nombre, item.precio || 0, 'bebidas');
         renderProductsByCategory('bebidas', dest);
@@ -1155,44 +1354,29 @@ function sellBebida(dest, pId) {
 }
 
 // --- INVENTARIO ---
-// Clave de acceso para que ventas pueda modificar bebidas (configurable desde admin)
 let claveInventario = "0000";
-let sesionInventarioToken = null; // Token de sesión: se invalida si cambia la clave
+let sesionInventarioToken = null;
 
 database.ref('config_clave_inv').on('value', (snap) => {
     if (snap.val() && snap.val() !== claveInventario) {
         claveInventario = snap.val();
-        sesionInventarioToken = null; // Clave cambió → cerrar sesión de inventario
-        console.log("🔑 Clave de inventario actualizada, sesión invalidada");
+        sesionInventarioToken = null;
     } else if (snap.val()) {
         claveInventario = snap.val();
     }
 });
 
 function abrirInventarioConClave(container, t) {
-    if (userRole === 'admin') {
-        renderInventory(container, t);
-        return;
-    }
-
-    // Verificar si la sesión de inventario es válida para esta clave
-    if (sesionInventarioToken === claveInventario) {
-        renderInventory(container, t);
-        return;
-    }
-
-    // Pedir clave — si cancela, vuelve al menú sin mostrar nada
+    if (userRole === 'admin') { renderInventory(container, t); return; }
+    if (sesionInventarioToken === claveInventario) { renderInventory(container, t); return; }
     const clave = prompt("🔒 Ingresa la clave para modificar inventario:");
-    if (clave === null || clave.trim() === '') {
-        showMenu();
-        return;
-    }
+    if (clave === null || clave.trim() === '') { showMenu(); return; }
     if (clave === claveInventario) {
-        sesionInventarioToken = claveInventario; // Guardar token de sesión
+        sesionInventarioToken = claveInventario;
         renderInventory(container, t);
     } else {
         alert("❌ Clave incorrecta.");
-        showMenu(); // Clave mala → regresa al menú, no muestra nada
+        showMenu();
     }
 }
 
@@ -1215,22 +1399,22 @@ function renderInventory(container, t) {
         data.forEach((item, idx) => {
             const esAlerta = item.cantidad <= (item.stock_minimo || 5);
             html += `
-            <div class="glass-card" style="${esAlerta ? 'border-left:4px solid var(--warning, orange);' : 'border-left:4px solid #333;'} padding:10px;">
+            <div class="glass-card" style="${esAlerta ? 'border-left:4px solid orange;' : 'border-left:4px solid #333;'} padding:10px;">
                 <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
                     <div style="flex:1; min-width:100px;">
-                        <b style="font-size:0.95rem;">${item.nombre}</b>
-                        ${esAlerta ? '<span class="badge-reabastecer" style="display:block; font-size:0.7rem; color:orange; margin-top:2px;">⚠️ REABASTECER</span>' : ''}
+                        <b>${item.nombre}</b>
+                        ${esAlerta ? '<span style="display:block; font-size:0.7rem; color:orange; margin-top:2px;">⚠️ REABASTECER</span>' : ''}
                     </div>
                     <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
                         <div style="display:flex; flex-direction:column; align-items:center;">
                             <small style="opacity:0.6; font-size:0.65rem;">STOCK</small>
-                            <input type="number" class="inv-input-inline" value="${item.cantidad}" 
+                            <input type="number" class="inv-input-inline" value="${item.cantidad}"
                                 style="width:60px; text-align:center;"
                                 onchange="updateInvField('${t}', ${idx}, 'cantidad', this.value)">
                         </div>
                         <div style="display:flex; flex-direction:column; align-items:center;">
                             <small style="opacity:0.6; font-size:0.65rem;">PRECIO</small>
-                            <input type="number" class="inv-input-inline" value="${item.precio || 0}" 
+                            <input type="number" class="inv-input-inline" value="${item.precio || 0}"
                                 style="width:75px; text-align:center;"
                                 onchange="updateInvField('${t}', ${idx}, 'precio', this.value)">
                         </div>
@@ -1243,133 +1427,112 @@ function renderInventory(container, t) {
     container.innerHTML = html + `</div>`;
 }
 
-function updateInvField(t, idx, field, v) { 
-    DB[t][idx][field] = parseInt(v) || 0; 
-    syncInv(); 
-}
-
-function deleteFromInv(t, idx) { 
-    DB[t].splice(idx, 1); 
-    syncInv(); 
-    renderInventory(document.getElementById('module-content'), t); 
-}
-
+function updateInvField(t, idx, field, v) { DB[t][idx][field] = parseInt(v) || 0; syncInv(); }
+function deleteFromInv(t, idx) { DB[t].splice(idx, 1); syncInv(); renderInventory(document.getElementById('module-content'), t); }
 function addToInventory(t) {
     const n = document.getElementById('inv-n').value;
     const c = parseInt(document.getElementById('inv-c').value);
     const p = parseInt(document.getElementById('inv-p').value);
-    
-    if (n && !isNaN(c) && !isNaN(p)) { 
-        DB[t].push({ id: Date.now(), nombre: n, cantidad: c, precio: p }); 
-        syncInv(); 
-        renderInventory(document.getElementById('module-content'), t); 
+    if (n && !isNaN(c) && !isNaN(p)) {
+        DB[t].push({ id: Date.now(), nombre: n, cantidad: c, precio: p });
+        syncInv();
+        renderInventory(document.getElementById('module-content'), t);
     } else {
         alert("Llena todos los campos (Nombre, Stock y Precio)");
     }
 }
 
-// --- OTROS GASTOS ---
+// --- GASTOS ---
 function renderOtros(container) {
     let total = Gastos.reduce((sum, g) => sum + g.monto, 0);
     let html = `
         <div class="inventory-form glass-card">
-            <input type="text" id="g-d" placeholder="Descripción del gasto">
+            <input type="text" id="g-d" placeholder="Descripcion del gasto">
             <input type="number" id="g-m" placeholder="Monto $">
             <button class="btn-nav" onclick="agregarGasto()">+</button>
         </div>
         <div class="inv-total">TOTAL GASTOS: $${total.toLocaleString()}</div>
         <table>`;
-    
-    Gastos.forEach((g) => {
-        html += `
-            <tr>
-                <td>${g.descripcion}</td>
-                <td>$${g.monto.toLocaleString()}</td>
-                <td><button class="btn-del" onclick="eliminarGasto('${g.idFirebase}')">🗑️</button></td>
-            </tr>`;
+    Gastos.forEach(g => {
+        html += `<tr>
+            <td>${g.descripcion}</td>
+            <td>$${g.monto.toLocaleString()}</td>
+            <td><button class="btn-del" onclick="eliminarGasto('${g.idFirebase}')">🗑️</button></td>
+        </tr>`;
     });
     container.innerHTML = html + `</table>`;
 }
-function agregarGasto() { 
-    const d = document.getElementById('g-d').value, m = parseInt(document.getElementById('g-m').value); 
-    if(d && m > 0) { 
+
+function agregarGasto() {
+    const d = document.getElementById('g-d').value, m = parseInt(document.getElementById('g-m').value);
+    if (d && m > 0) {
         database.ref('paolos_gastos_actuales').push({ descripcion: d, monto: m });
         document.getElementById('g-d').value = "";
         document.getElementById('g-m').value = "";
     }
 }
-// --- MODIFICADO: Elimina gasto de Firebase usando su ID ---
-function eliminarGasto(idFirebase) { 
-    if(confirm("¿Eliminar este gasto?")) {
+
+function eliminarGasto(idFirebase) {
+    if (confirm("¿Eliminar este gasto?")) {
         database.ref(`paolos_gastos_actuales/${idFirebase}`).remove();
     }
 }
-// --- REPORTES ---
+
+// --- REPORTES TRANSFERENCIAS ---
 function renderTransferencias(container) {
-    const transf = VentasHistoricas.filter(v => v.metodo === 'Transferencia');
-    let total = transf.reduce((s, v) => s + v.total, 0);
+    const transf = VentasHistoricas.filter(v => v.metodo === 'Transferencia' || v.metodo === 'Mixto');
+    let total = transf.reduce((s, v) => s + (v.pagoTransferencia || v.total || 0), 0);
     let html = `<div class="inv-total">TOTAL TRANSF: $${total.toLocaleString()}</div><div class="products-grid">`;
-    transf.forEach(v => html += `<div class="product-card"><small>${v.hora}</small><h4>${v.destino}</h4><span>$${v.total.toLocaleString()}</span></div>`);
+    transf.forEach(v => {
+        const montoTransf = v.pagoTransferencia || v.total || 0;
+        html += `<div class="product-card">
+            <small>${v.hora} — ${v.metodo}</small>
+            <h4>${v.destino}</h4>
+            <span>$${montoTransf.toLocaleString()}</span>
+        </div>`;
+    });
     container.innerHTML = html + `</div>`;
 }
 
+// --- HISTORIAL ---
 function borrarHistorial() {
     if (userRole !== 'admin') { alert("Solo el administrador puede borrar el historial."); return; }
     const clave = prompt("Introduce la clave para confirmar:");
     if (clave !== claveInventario) { alert("Clave incorrecta."); return; }
-    if (!confirm("¿Borrar TODO el historial? Esta acción es permanente.")) return;
+    if (!confirm("¿Borrar TODO el historial? Esta accion es permanente.")) return;
     database.ref('paolos_historial').remove()
-        .then(() => {
-            HistorialCierres = [];
-            alert("Historial borrado correctamente.");
-            updateStatsFilter();
-        })
+        .then(() => { HistorialCierres = []; alert("Historial borrado."); updateStatsFilter(); })
         .catch(err => alert("Error al borrar: " + err));
 }
 
 function borrarDiaHistorial(id) {
     if (userRole !== 'admin') { alert("Solo el administrador puede borrar registros."); return; }
-    if (!confirm("¿Borrar este día del historial?")) return;
+    if (!confirm("¿Borrar este dia del historial?")) return;
     database.ref('paolos_historial/' + id).remove()
-        .then(() => {
-            HistorialCierres = HistorialCierres.filter(c => c.id !== id);
-            updateStatsFilter();
-        })
+        .then(() => { HistorialCierres = HistorialCierres.filter(c => c.id !== id); updateStatsFilter(); })
         .catch(err => alert("Error al borrar: " + err));
 }
 
-function limpiarHistorialSeguro() { borrarHistorial(); }
-
-// --- MÓDULO DE AJUSTES DE PRECIOS ---
+// --- AJUSTES DE PRECIOS ---
 function renderAjustes(container) {
-
     let html = `
     <div class="glass-card" style="padding:15px; border-top: 4px solid var(--accent);">
-    <p style="font-size:0.8rem; color:var(--accent); margin-bottom:15px; text-align:center;">
-    ⚙️ PANEL DE CONTROL DE PRECIOS
-    </p>`;
+    <p style="font-size:0.8rem; color:var(--accent); margin-bottom:15px; text-align:center;">⚙️ PANEL DE CONTROL DE PRECIOS</p>`;
 
-    // 🍕 PORCIONES
     html += `<h3 class="accent">🍕 PORCIONES</h3><table>`;
     DB.sabores_pizzas.forEach((s, idx) => {
-        html += `
-        <tr>
-            <td>${s.nombre}</td>
-            <td>
-                <input type="number" value="${s.precio}" class="inv-input-inline"
-                onchange="DB.sabores_pizzas[${idx}].precio = parseInt(this.value); syncPrecios();">
-            </td>
-        </tr>`;
+        html += `<tr><td>${s.nombre}</td><td>
+            <input type="number" value="${s.precio}" class="inv-input-inline"
+            onchange="DB.sabores_pizzas[${idx}].precio = parseInt(this.value); syncPrecios();">
+        </td></tr>`;
     });
     html += `</table>`;
 
-    // 🍕 PIZZAS COMPLETAS
     html += `<hr><h3 class="accent">🥘 PIZZAS COMPLETAS</h3>
-    <p style="font-size:0.75rem; opacity:0.7; margin-bottom:8px;">⚠️ El precio cobrado es siempre el más alto entre los sabores elegidos (especialidad vs tradicional).</p>
+    <p style="font-size:0.75rem; opacity:0.7; margin-bottom:8px;">El precio cobrado es el mas alto entre los sabores elegidos.</p>
     <table><tr><th>Tamaño</th><th>Especialidad</th><th>Tradicional</th></tr>`;
     DB.menu.pizzas_completa.forEach((p, idx) => {
-        html += `
-        <tr>
+        html += `<tr>
             <td>${p.nombre}</td>
             <td><input type="number" value="${p.precio_esp}" class="inv-input-inline" style="width:70px;"
                 onchange="DB.menu.pizzas_completa[${idx}].precio_esp = parseInt(this.value); syncPrecios();"></td>
@@ -1379,115 +1542,76 @@ function renderAjustes(container) {
     });
     html += `</table>`;
 
-    // 🍝 LASAÑAS
-    html += `<hr><h3 class="accent">🍝 LASAÑAS</h3><table>`;
+    html += `<hr><h3 class="accent">🍝 LASANAS</h3><table>`;
     DB.menu.lasañas.forEach((l, idx) => {
-        html += `
-        <tr>
-            <td>${l.nombre}</td>
-            <td>
-                P <input type="number" value="${l.precio_p}" style="width:60px;"
-                onchange="DB.menu.lasañas[${idx}].precio_p = parseInt(this.value); syncPrecios();">
-                
-                M <input type="number" value="${l.precio_m}" style="width:60px;"
-                onchange="DB.menu.lasañas[${idx}].precio_m = parseInt(this.value); syncPrecios();">
-                
-                F <input type="number" value="${l.precio_f}" style="width:60px;"
-                onchange="DB.menu.lasañas[${idx}].precio_f = parseInt(this.value); syncPrecios();">
-            </td>
-        </tr>`;
+        html += `<tr><td>${l.nombre}</td><td>
+            P <input type="number" value="${l.precio_p}" style="width:60px;"
+            onchange="DB.menu.lasañas[${idx}].precio_p = parseInt(this.value); syncPrecios();">
+            M <input type="number" value="${l.precio_m || l.precio_p}" style="width:60px;"
+            onchange="DB.menu.lasañas[${idx}].precio_m = parseInt(this.value); syncPrecios();">
+            F <input type="number" value="${l.precio_f}" style="width:60px;"
+            onchange="DB.menu.lasañas[${idx}].precio_f = parseInt(this.value); syncPrecios();">
+        </td></tr>`;
     });
     html += `</table>`;
 
-    // 🥞 CREPES
     html += `<hr><h3 class="accent">🥞 CREPES</h3><table>`;
     DB.menu.crepes.forEach((c, idx) => {
-        html += `
-        <tr>
-            <td>${c.nombre}</td>
-            <td>
-                <input type="number" value="${c.precio}" class="inv-input-inline"
-                onchange="DB.menu.crepes[${idx}].precio = parseInt(this.value); syncPrecios();">
-            </td>
-        </tr>`;
+        html += `<tr><td>${c.nombre}</td><td>
+            <input type="number" value="${c.precio}" class="inv-input-inline"
+            onchange="DB.menu.crepes[${idx}].precio = parseInt(this.value); syncPrecios();">
+        </td></tr>`;
     });
     html += `</table>`;
 
-    // 🍽️ PASTAS
     html += `<hr><h3 class="accent">🍽️ PASTAS</h3><table>`;
     (DB.menu.pastas || []).forEach((p, idx) => {
-        html += `
-        <tr>
-            <td>${p.nombre}</td>
-            <td>
-                <input type="number" value="${p.precio}" class="inv-input-inline"
-                onchange="DB.menu.pastas[${idx}].precio = parseInt(this.value); syncPrecios();">
-            </td>
-        </tr>`;
+        html += `<tr><td>${p.nombre}</td><td>
+            <input type="number" value="${p.precio}" class="inv-input-inline"
+            onchange="DB.menu.pastas[${idx}].precio = parseInt(this.value); syncPrecios();">
+        </td></tr>`;
     });
     html += `</table>`;
 
-    // 🍔 PANZEROTTIS
     html += `<hr><h3 class="accent">🍔 PANZEROTTIS</h3><table>`;
     (DB.menu.panzerottis || []).forEach((p, idx) => {
-        html += `
-        <tr>
-            <td>${p.nombre}</td>
-            <td>
-                <input type="number" value="${p.precio}" class="inv-input-inline"
-                onchange="DB.menu.panzerottis[${idx}].precio = parseInt(this.value); syncPrecios();">
-            </td>
-        </tr>`;
+        html += `<tr><td>${p.nombre}</td><td>
+            <input type="number" value="${p.precio}" class="inv-input-inline"
+            onchange="DB.menu.panzerottis[${idx}].precio = parseInt(this.value); syncPrecios();">
+        </td></tr>`;
     });
     html += `</table>`;
 
-    // ➕ AGREGAR PRODUCTO
     html += `
     <hr>
     <h3 class="accent">➕ AGREGAR PRODUCTO</h3>
-
     <input id="nuevo-nombre" placeholder="Nombre" class="inv-input-inline" style="width:100%; margin-top:10px;">
     <input id="nuevo-precio" type="number" placeholder="Precio" class="inv-input-inline" style="width:100%; margin-top:10px;">
-
     <select id="nuevo-categoria" class="inv-input-inline" style="width:100%; margin-top:10px;">
         <option value="pizzas_completa">Pizza Completa</option>
         <option value="crepes">Crepes</option>
-        <option value="lasañas">Lasañas</option>
+        <option value="lasañas">Lasanas</option>
         <option value="pastas">Pastas</option>
         <option value="panzerottis">Panzerottis</option>
     </select>
+    <button class="btn-action" style="margin-top:15px; width:100%;" onclick="agregarProducto()">GUARDAR PRODUCTO</button>
 
-    <button class="btn-action" style="margin-top:15px; width:100%;" onclick="agregarProducto()">
-        GUARDAR PRODUCTO
-    </button>
-    `;
-
-    // 🔒 CAMBIAR CLAVE DE INVENTARIO (solo admin)
-    html += `
     <hr>
     <h3 class="accent">🔒 CLAVE DE INVENTARIO</h3>
-    <p style="font-size:0.8rem; opacity:0.7; margin-bottom:10px;">Clave que ventas debe ingresar para modificar bebidas.</p>
-    <p style="font-size:0.85rem; margin-bottom:10px;">Clave actual: <b style="color:var(--accent);">${claveInventario}</b></p>
+    <p style="font-size:0.8rem; opacity:0.7; margin-bottom:10px;">Clave actual: <b style="color:var(--accent);">${claveInventario}</b></p>
     <input id="nueva-clave-inv" type="text" placeholder="Nueva clave" class="inv-input-inline" style="width:100%; margin-bottom:10px;">
-    <button class="btn-action" style="width:100%; background:#7c3aed;" onclick="cambiarClaveInventario()">
-        GUARDAR NUEVA CLAVE
-    </button>
-    `;
+    <button class="btn-action" style="width:100%; background:#7c3aed;" onclick="cambiarClaveInventario()">GUARDAR NUEVA CLAVE</button>
 
-    html += `</div>`;
+    </div>`;
 
     container.innerHTML = html;
 }
 
 function cambiarClaveInventario() {
     const nueva = document.getElementById('nueva-clave-inv').value.trim();
-    if (!nueva) { alert("⚠️ Escribe una clave válida."); return; }
+    if (!nueva) { alert("⚠️ Escribe una clave valida."); return; }
     database.ref('config_clave_inv').set(nueva)
-        .then(() => {
-            claveInventario = nueva;
-            alert("✅ Clave actualizada correctamente.");
-            openModule('ajustes');
-        })
+        .then(() => { claveInventario = nueva; alert("✅ Clave actualizada."); openModule('ajustes'); })
         .catch(err => alert("❌ Error: " + err.message));
 }
 
@@ -1495,259 +1619,238 @@ function agregarProducto() {
     const nombre = document.getElementById('nuevo-nombre').value.trim();
     const precio = parseInt(document.getElementById('nuevo-precio').value);
     const categoria = document.getElementById('nuevo-categoria').value;
-
-    if (!nombre || !precio) {
-        alert("⚠️ Completa todos los campos");
-        return;
-    }
-
-    if (!DB.menu[categoria]) {
-        DB.menu[categoria] = [];
-    }
-
-    DB.menu[categoria].push({
-        nombre: nombre,
-        precio: precio
-    });
-
-    // 🔥 GUARDAR EN FIREBASE
+    if (!nombre || !precio) { alert("⚠️ Completa todos los campos"); return; }
+    if (!DB.menu[categoria]) DB.menu[categoria] = [];
+    DB.menu[categoria].push({ nombre, precio });
     syncPrecios();
-
     alert("✅ Producto agregado");
-
-    // limpiar campos
     document.getElementById('nuevo-nombre').value = "";
     document.getElementById('nuevo-precio').value = "";
-
-    // recargar ajustes
     openModule('ajustes');
 }
-/**
- * FUNCIÓN DE IMPRESIÓN PARA DG-5811K
- * Recibe un objeto con: totalEfectivo, comida[], bebidas[], gastos[]
- */
-// --- LÓGICA DE PROCESAMIENTO PARA TICKET DG-5811K ---
-// =========================================================
-// BLOQUE UNIFICADO DE IMPRESIÓN (DG-5811K)
-// =========================================================
+
+// =====================================================
+// --- IMPRESIÓN EN 4 PARTES ---
+// =====================================================
+
+function limpiarTextoImpresora(texto) {
+    const mapa = {
+        'á': 'a', 'é': 'e', 'í': 'i', 'ó': 'o', 'ú': 'u',
+        'Á': 'A', 'É': 'E', 'Í': 'I', 'Ó': 'O', 'Ú': 'U',
+        'ñ': 'n', 'Ñ': 'N', 'ü': 'u', 'Ü': 'U',
+        '¿': '?', '¡': '!', '°': '', '·': '.', '…': '...'
+    };
+    return texto.replace(/[áéíóúÁÉÍÓÚñÑüÜ¿¡°·…]/g, c => mapa[c] || c);
+}
 
 function prepararDatosYImprimir() {
-    console.log("Iniciando proceso de impresión...");
-    
-    // 1. Calculamos el efectivo real en caja
-    const totalVentasEfectivo = VentasHistoricas
-        .filter(v => v.metodo === 'Efectivo')
-        .reduce((s, v) => s + v.total, 0);
-    
-    const totalGastos = Gastos.reduce((sum, g) => sum + g.monto, 0);
-    const efectivoReal = (totalVentasEfectivo + (CajaActual.base || 0)) - totalGastos;
-
-    // 2. Clasificamos los productos (Agrupados)
-    const comidaItems = [];
-    const bebidaItems = [];
+    // Separar items por categoría
+    const comidaMap = {};   // pizzas, porciones, crepes, lasañas, pastas, panzerottis
+    const bebidaMap = {};   // bebidas
+    let totalTransferencias = 0;
+    let totalVentasGeneral = 0;
 
     VentasHistoricas.forEach(v => {
-        if (v.items) {
-            v.items.forEach(item => {
-                const esBebida = (item.categoria === 'bebidas');
-                const target = esBebida ? bebidaItems : comidaItems;
-                const nombreLimpio = item.nombre || "Producto";
-                
-                const existente = target.find(i => i.producto === nombreLimpio || i.nombre === nombreLimpio);
-                
-                if (existente) {
-                    existente.cant++;
-                } else {
-                    target.push({ 
-                        producto: nombreLimpio, 
-                        nombre: nombreLimpio, 
-                        cant: 1, 
-                        precio: item.precio 
-                    });
-                }
-            });
-        }
+        // Acumular transferencias
+        if (v.metodo === 'Transferencia') totalTransferencias += v.total;
+        else if (v.metodo === 'Mixto') totalTransferencias += (v.pagoTransferencia || 0);
+
+        totalVentasGeneral += v.total;
+
+        if (!v.items) return;
+        v.items.forEach(item => {
+            const nombre = limpiarTextoImpresora(item.nombre || 'Producto');
+            const precio = item.precio || 0;
+            const esBebida = item.categoria === 'bebidas';
+            const mapa = esBebida ? bebidaMap : comidaMap;
+
+            if (!mapa[nombre]) mapa[nombre] = { nombre, cant: 0, precioUnit: precio, total: 0 };
+            mapa[nombre].cant++;
+            mapa[nombre].total += precio;
+        });
     });
 
-    // 3. Formateamos gastos
-    const gastosTicket = Gastos.map(g => ({
-        motivo: g.descripcion || g.motivo || "Gasto",
-        monto: g.monto
-    }));
+    const totalGastos = Gastos.reduce((s, g) => s + g.monto, 0);
+    const gastosArr = Gastos.map(g => ({ motivo: limpiarTextoImpresora(g.descripcion || 'Gasto'), monto: g.monto }));
 
-    // 4. Llamamos a la ejecución del ticket
-    imprimirCierrePizzeria({
-        totalEfectivo: efectivoReal,
-        comida: comidaItems,
-        bebidas: bebidaItems,
-        gastos: gastosTicket
-    });
+    const comidaArr = Object.values(comidaMap);
+    const bebidaArr = Object.values(bebidaMap);
+
+    // Calcular totales por categoría para el ticket
+    const totalComida = comidaArr.reduce((s, i) => s + i.total, 0);
+    const totalBebidas = bebidaArr.reduce((s, i) => s + i.total, 0);
+
+    const sep   = "-----------------------------\n";
+    const sep2  = "=============================\n";
+    const fecha = new Date().toLocaleString('es-CO');
+
+    // ============================================================
+    // TICKET 1: GASTOS + TRANSFERENCIAS
+    // ============================================================
+    let t1 = "";
+    t1 += "     PAOLO'S PIZZA\n";
+    t1 += "   TICKET 1/4 - GASTOS\n";
+    t1 += sep;
+    t1 += "F: " + fecha + "\n";
+    t1 += sep;
+
+    t1 += "--- GASTOS DEL TURNO ---\n";
+    if (gastosArr.length > 0) {
+        gastosArr.forEach(g => {
+            const mot = g.motivo.substring(0, 14).padEnd(14);
+            const val = ("-$" + g.monto.toLocaleString('es-CO')).padStart(8);
+            t1 += "* " + mot + val + "\n";
+        });
+    } else {
+        t1 += "  (Sin gastos)\n";
+    }
+    t1 += sep;
+    t1 += "TOTAL GASTOS:".padEnd(18) + ("$" + totalGastos.toLocaleString('es-CO')) + "\n";
+    t1 += sep2;
+
+    t1 += "--- TRANSFERENCIAS ---\n";
+    const ventasTransf = VentasHistoricas.filter(v => v.metodo === 'Transferencia' || v.metodo === 'Mixto');
+    if (ventasTransf.length > 0) {
+        ventasTransf.forEach(v => {
+            const monto = v.pagoTransferencia || v.total || 0;
+            const dest = limpiarTextoImpresora(v.destino || '').substring(0, 10).padEnd(10);
+            const hora = (v.hora || '').padEnd(6);
+            const val = ("$" + monto.toLocaleString('es-CO')).padStart(7);
+            t1 += hora + " " + dest + val + "\n";
+        });
+    } else {
+        t1 += "  (Sin transferencias)\n";
+    }
+    t1 += sep;
+    t1 += "TOTAL TRANSF:".padEnd(18) + ("$" + totalTransferencias.toLocaleString('es-CO')) + "\n";
+    t1 += "\n\n";
+
+    // ============================================================
+    // TICKET 2: BEBIDAS
+    // ============================================================
+    let t2 = "";
+    t2 += "     PAOLO'S PIZZA\n";
+    t2 += "  TICKET 2/4 - BEBIDAS\n";
+    t2 += sep;
+    t2 += "F: " + fecha + "\n";
+    t2 += sep;
+    t2 += "CANT  PRODUCTO         TOTAL\n";
+    t2 += sep;
+
+    if (bebidaArr.length > 0) {
+        bebidaArr.forEach(b => {
+            const cant = String(b.cant).padEnd(5);
+            const nom  = b.nombre.substring(0, 14).padEnd(14);
+            const val  = ("$" + b.total.toLocaleString('es-CO')).padStart(8);
+            t2 += cant + nom + val + "\n";
+        });
+    } else {
+        t2 += "  (Sin ventas de bebidas)\n";
+    }
+    t2 += sep;
+    t2 += "TOTAL BEBIDAS:".padEnd(18) + ("$" + totalBebidas.toLocaleString('es-CO')) + "\n";
+    t2 += "\n\n";
+
+    // ============================================================
+    // TICKET 3: COMIDAS (pizzas, porciones, crepes, etc.)
+    // ============================================================
+    let t3 = "";
+    t3 += "     PAOLO'S PIZZA\n";
+    t3 += "  TICKET 3/4 - COMIDAS\n";
+    t3 += sep;
+    t3 += "F: " + fecha + "\n";
+    t3 += sep;
+    t3 += "CANT  PRODUCTO         TOTAL\n";
+    t3 += sep;
+
+    if (comidaArr.length > 0) {
+        comidaArr.forEach(c => {
+            const cant = String(c.cant).padEnd(5);
+            const nom  = c.nombre.substring(0, 14).padEnd(14);
+            const val  = ("$" + c.total.toLocaleString('es-CO')).padStart(8);
+            t3 += cant + nom + val + "\n";
+        });
+    } else {
+        t3 += "  (Sin ventas de comida)\n";
+    }
+    t3 += sep;
+    t3 += "TOTAL COMIDAS:".padEnd(18) + ("$" + totalComida.toLocaleString('es-CO')) + "\n";
+    t3 += "\n\n";
+
+    // ============================================================
+    // TICKET 4: RESUMEN TOTAL
+    // ============================================================
+    const efectivoEnCaja = (totalVentasGeneral - totalTransferencias + (CajaActual.base || 0)) - totalGastos;
+
+    let t4 = "";
+    t4 += "     PAOLO'S PIZZA\n";
+    t4 += "   TICKET 4/4 - TOTALES\n";
+    t4 += sep;
+    t4 += "F: " + fecha + "\n";
+    t4 += sep2;
+
+    t4 += "BASE INICIAL:".padEnd(18)  + ("$" + (CajaActual.base || 0).toLocaleString('es-CO')) + "\n";
+    t4 += sep;
+    t4 += "VENTAS COMIDA:".padEnd(18) + ("$" + totalComida.toLocaleString('es-CO')) + "\n";
+    t4 += "VENTAS BEBIDAS:".padEnd(18)+ ("$" + totalBebidas.toLocaleString('es-CO')) + "\n";
+    t4 += "TOTAL VENTAS:".padEnd(18)  + ("$" + totalVentasGeneral.toLocaleString('es-CO')) + "\n";
+    t4 += sep;
+    t4 += "TRANSFERENCIAS:".padEnd(18)+ ("-$" + totalTransferencias.toLocaleString('es-CO')) + "\n";
+    t4 += "GASTOS:".padEnd(18)        + ("-$" + totalGastos.toLocaleString('es-CO')) + "\n";
+    t4 += sep2;
+    t4 += "EFECTIVO EN CAJA:\n";
+    t4 += "  $" + efectivoEnCaja.toLocaleString('es-CO') + "\n";
+    t4 += sep2;
+    t4 += "NETO DEL TURNO:\n";
+    t4 += "  $" + (totalVentasGeneral - totalGastos).toLocaleString('es-CO') + "\n";
+    t4 += "\n\n";
+
+    // Enviar los 4 tickets a la cola de impresión con pequeño delay entre cada uno
+    imprimirConQZ(t1);
+    setTimeout(() => imprimirConQZ(t2), 500);
+    setTimeout(() => imprimirConQZ(t3), 1000);
+    setTimeout(() => imprimirConQZ(t4), 1500);
 }
 
-function imprimirCierrePizzeria(datos) {
-    // Insertar Total Efectivo
-    const totalEf = document.getElementById('val-efectivo');
-    if(totalEf) totalEf.innerText = `$ ${Number(datos.totalEfectivo).toLocaleString()}`;
-
-    // Función para filas (Máximo 11 caracteres para el nombre)
-    const crearFila = (cant, nombre, precio) => `
-        <div class="item-linea">
-            <span class="nombre-item">${cant} ${nombre.substring(0, 11)}</span>
-            <span class="precio-item">$${Number(precio).toLocaleString()}</span>
-        </div>`;
-
-    // Llenar Comida
-    const listaComida = document.getElementById('lista-comida');
-    if(listaComida) {
-        listaComida.innerHTML = datos.comida.length > 0 
-            ? datos.comida.map(c => crearFila(c.cant, (c.producto || c.nombre), c.cant * c.precio)).join('')
-            : '<div style="font-size:7pt">Sin ventas</div>';
-    }
-
-    // Llenar Bebidas
-    const listaBebidas = document.getElementById('lista-bebidas');
-    if(listaBebidas) {
-        listaBebidas.innerHTML = datos.bebidas.length > 0 
-            ? datos.bebidas.map(b => crearFila(b.cant, b.nombre, b.cant * b.precio)).join('')
-            : '<div style="font-size:7pt">Sin bebidas</div>';
-    }
-
-    // Llenar Gastos
-    const listaGastos = document.getElementById('lista-gastos');
-    if(listaGastos) {
-        listaGastos.innerHTML = datos.gastos.length > 0 
-            ? datos.gastos.map(g => `
-                <div class="item-linea">
-                    <span class="nombre-item">* ${g.motivo.substring(0, 11)}</span>
-                    <span class="precio-item">$${Number(g.monto).toLocaleString()}</span>
-                </div>`).join('')
-            : '<div style="font-size:7pt">Sin gastos</div>';
-    }
-
-    const fecha = document.getElementById('fecha-impresion');
-    if(fecha) fecha.innerText = "F: " + new Date().toLocaleString();
-
-    // Generar texto ESC/POS y enviar a QZ Tray
-    const ESC = "\x1B", GS = "\x1D";
-    let txt = ESC + "@";                          // Inicializar impresora
-    txt += ESC + "a\x01";                         // Centrar
-    txt += "     PAOLO'S PIZZA\n";
-    txt += "-----------------------------\n";
-    txt += ESC + "a\x00";                         // Alinear izquierda
-
-    if (datos.comida.length > 0) {
-        txt += "--- COMIDA ---\n";
-        datos.comida.forEach(c => {
-            const nom = (c.producto || c.nombre).substring(0, 14).padEnd(14);
-            const val = ("$" + Number(c.cant * c.precio).toLocaleString()).padStart(9);
-            txt += c.cant + "x " + nom + val + "\n";
-        });
-    }
-
-    if (datos.bebidas.length > 0) {
-        txt += "--- BEBIDAS ---\n";
-        datos.bebidas.forEach(b => {
-            const nom = b.nombre.substring(0, 14).padEnd(14);
-            const val = ("$" + Number(b.cant * b.precio).toLocaleString()).padStart(9);
-            txt += b.cant + "x " + nom + val + "\n";
-        });
-    }
-
-    if (datos.gastos.length > 0) {
-        txt += "--- GASTOS ---\n";
-        datos.gastos.forEach(g => {
-            const mot = (g.motivo || "Gasto").substring(0, 14).padEnd(14);
-            const val = ("-$" + Number(g.monto).toLocaleString()).padStart(8);
-            txt += "* " + mot + val + "\n";
-        });
-    }
-
-    txt += "-----------------------------\n";
-    txt += ESC + "a\x01";                         // Centrar
-    txt += "EFECTIVO EN CAJA:\n";
-    txt += "$" + Number(datos.totalEfectivo).toLocaleString() + "\n";
-    txt += "F: " + new Date().toLocaleString() + "\n";
-    txt += "\n\n\n";
-    txt += GS + "V\x41";                          // Cortar papel
-
-    imprimirConQZ(txt);
-}
-// Función para imprimir comanda de cocina (DG-5811K)
+// --- COMANDA DE COCINA ---
 function imprimirComandaCocina(dest) {
     const items = Cuentas[dest] || [];
     if (items.length === 0) return alert("No hay productos para enviar a cocina");
 
-    // 1. Llenar los datos en el ticket del HTML
-    document.getElementById('comanda-n-mesa').innerText = dest;
-    document.getElementById('comanda-fecha').innerText = new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
-
-    const lista = document.getElementById('comanda-items');
-    
-    // Agrupamos los productos para que el cocinero vea la cantidad total
     const grouped = items.reduce((acc, it) => {
         acc[it.nombre] = (acc[it.nombre] || 0) + 1;
         return acc;
     }, {});
 
-    lista.innerHTML = Object.keys(grouped).map(nombre => `
-        <div style="display: flex; justify-content: space-between; font-weight: bold; margin-bottom: 5px;">
-            <span style="text-transform: uppercase;">${nombre.substring(0, 20)}</span>
-            <span>x${grouped[nombre]}</span>
-        </div>
-    `).join('');
+    const sep  = "-----------------------------\n";
+    const hora = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    const fecha = new Date().toLocaleDateString('es-CO');
 
-    // 2. Generar texto ESC/POS y enviar a QZ Tray
-    const ESC = "\x1B", GS = "\x1D";
-    let txt = ESC + "@";
-    txt += ESC + "a\x01";                         // Centrar
-    txt += "*** COMANDA COCINA ***\n";
-    txt += "MESA: " + dest + "\n";
-    txt += new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}) + "\n";
-    txt += "-----------------------------\n";
-    txt += ESC + "a\x00";                         // Izquierda
+    let txt = "";
+    txt += "     PAOLOS PIZZA\n";
+    txt += "   COMANDA COCINA\n";
+    txt += "   " + dest.toUpperCase() + "\n\n";
+    txt += "   " + fecha + "  " + hora + "\n";
+    txt += sep;
+    txt += "CANT  DESCRIPCION\n";
+    txt += sep;
 
     Object.keys(grouped).forEach(nombre => {
-        const nom = nombre.substring(0, 18).toUpperCase().padEnd(18);
-        txt += nom + "  x" + grouped[nombre] + "\n";
+        const cant = String(grouped[nombre]).padEnd(5);
+        const nom  = limpiarTextoImpresora(nombre).substring(0, 22).toUpperCase();
+        txt += cant + " " + nom + "\n";
     });
 
-    txt += "\n\n\n";
-    txt += GS + "V\x41";                          // Cortar papel
-
+    txt += sep + "\n";
     imprimirConQZ(txt);
 }
-// =========================================================
-// BLOQUE QZ TRAY — IMPRESIÓN REAL (DG-5811K)
-// =========================================================
 
-async function conectarQZ() {
-    try {
-        if (!qz.websocket.isActive()) {
-            await qz.websocket.connect();
-            console.log("✅ Conectado a QZ Tray");
-        }
-    } catch (err) {
-        console.error("❌ Error QZ:", err);
-        alert("No se pudo conectar con la impresora.\n¿Está QZ Tray abierto en este computador?");
-    }
+function imprimirConQZ(texto) {
+    const entrada = { texto, encoding: 'raw', timestamp: Date.now() };
+    database.ref('paolos_print_queue').push(entrada)
+        .then(() => console.log("Ticket enviado a cola de impresion"))
+        .catch(err => {
+            console.error("Error al enviar ticket:", err);
+            alert("No se pudo enviar el ticket.\nVerifica la conexion con Firebase.");
+        });
 }
-
-async function imprimirConQZ(texto) {
-    try {
-        await conectarQZ();
-        const config = qz.configs.create("POS"); // ← Cambia esto si el nombre en Windows es diferente
-        const data = [{ type: 'raw', format: 'plain', data: texto }];
-        await qz.print(config, data);
-        console.log("🖨️ Ticket impreso correctamente");
-    } catch (err) {
-        console.error("❌ Error al imprimir:", err);
-        alert("Error al imprimir.\nVerifica que QZ Tray esté activo y el nombre de la impresora sea correcto.");
-    }
-}
-
-// Conectar QZ Tray automáticamente al cargar la página
-window.addEventListener('load', () => {
-    if (typeof qz !== 'undefined') {
-        conectarQZ();
-    }
-});
