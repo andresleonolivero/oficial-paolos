@@ -92,71 +92,118 @@ window.addEventListener('load', () => {
     const estiloClaro = document.createElement('style');
     estiloClaro.innerHTML = `
         body.modo-claro {
-            background: #f0f2f5 !important;
-            color: #111 !important;
+            background: #e8eaf0 !important;
+            color: #2c2c3a !important;
         }
         body.modo-claro .glass-card {
-            background: #ffffff !important;
-            border-color: #ddd !important;
-            color: #111 !important;
+            background: #f0f2f8 !important;
+            border-color: #c8ccd8 !important;
+            color: #2c2c3a !important;
             box-shadow: 0 2px 12px rgba(0,0,0,0.08) !important;
         }
         body.modo-claro .product-card {
-            background: #f5f5f5 !important;
-            border-color: #ddd !important;
-            color: #111 !important;
+            background: #e8eaf0 !important;
+            border-color: #c8ccd8 !important;
+            color: #2c2c3a !important;
+        }
+        body.modo-claro .product-card h4,
+        body.modo-claro .product-card span,
+        body.modo-claro .product-card p {
+            color: #2c2c3a !important;
         }
         body.modo-claro .mesa-btn,
+        body.modo-claro .domicilio-btn,
+        body.modo-claro .llevar-btn,
         body.modo-claro .category-btn {
-            background: #e8e8e8 !important;
-            color: #111 !important;
-            border-color: #ccc !important;
+            background: #dde0ea !important;
+            color: #2c2c3a !important;
+            border-color: #b8bcc8 !important;
+        }
+        body.modo-claro .mesa-btn span,
+        body.modo-claro .domicilio-btn span,
+        body.modo-claro .llevar-btn span {
+            color: #2c2c3a !important;
         }
         body.modo-claro .btn-action {
-            color: #000 !important;
+            color: #fff !important;
         }
         body.modo-claro input,
         body.modo-claro select,
         body.modo-claro textarea {
-            background: #fff !important;
-            color: #111 !important;
-            border-color: #bbb !important;
+            background: #f0f2f8 !important;
+            color: #2c2c3a !important;
+            border-color: #b8bcc8 !important;
         }
-        body.modo-claro table, body.modo-claro td, body.modo-claro th {
-            color: #111 !important;
-            border-color: #ddd !important;
+        body.modo-claro table,
+        body.modo-claro td,
+        body.modo-claro th {
+            color: #2c2c3a !important;
+            border-color: #c8ccd8 !important;
         }
         body.modo-claro .inv-total {
-            background: #e5e5e5 !important;
-            color: #111 !important;
+            background: #dde0ea !important;
+            color: #2c2c3a !important;
         }
         body.modo-claro #login-screen {
-            background: #f0f2f5 !important;
+            background: #e8eaf0 !important;
+        }
+        body.modo-claro .top-bar {
+            background: #f0f2f8 !important;
+            border-color: #c8ccd8 !important;
+        }
+        body.modo-claro .brand,
+        body.modo-claro #user-display {
+            color: #2c2c3a !important;
         }
         body.modo-claro .order-summary {
-            background: #fff !important;
-            color: #111 !important;
+            background: #f0f2f8 !important;
+            color: #2c2c3a !important;
         }
         body.modo-claro .summary-item {
-            border-color: #ddd !important;
-            color: #111 !important;
+            border-color: #c8ccd8 !important;
+            color: #2c2c3a !important;
+        }
+        body.modo-claro .summary-item span,
+        body.modo-claro .summary-item b {
+            color: #2c2c3a !important;
         }
         body.modo-claro .flavor-item {
-            background: #f5f5f5 !important;
-            border-color: #ddd !important;
-            color: #111 !important;
+            background: #e8eaf0 !important;
+            border-color: #c8ccd8 !important;
+            color: #2c2c3a !important;
+        }
+        body.modo-claro .flavor-item h4,
+        body.modo-claro .flavor-item span {
+            color: #2c2c3a !important;
         }
         body.modo-claro .pay-btn {
-            background: #e0e0e0 !important;
-            color: #111 !important;
-            border-color: #ccc !important;
+            background: #dde0ea !important;
+            color: #2c2c3a !important;
+            border-color: #b8bcc8 !important;
         }
         body.modo-claro .pay-btn.selected {
             background: var(--accent) !important;
             color: #000 !important;
         }
         body.modo-claro #module-title {
-            color: #111 !important;
+            color: #2c2c3a !important;
+        }
+        body.modo-claro .menu-item {
+            background: #f0f2f8 !important;
+            color: #2c2c3a !important;
+            border-color: #c8ccd8 !important;
+        }
+        body.modo-claro .menu-item span {
+            color: #2c2c3a !important;
+        }
+        body.modo-claro small,
+        body.modo-claro p,
+        body.modo-claro h3,
+        body.modo-claro h4,
+        body.modo-claro label,
+        body.modo-claro b,
+        body.modo-claro strong {
+            color: #2c2c3a !important;
         }
 
         /* PANTALLA GRANDE - mejor aprovechamiento de espacio */
