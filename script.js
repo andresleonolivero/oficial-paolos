@@ -1006,11 +1006,12 @@ function filterItems(dest) {
                         </div>
                     </div>`;
                 } else if (catKey === 'pizzas_completa') {
+                    const tamClave = p.nombre.includes('Mini') ? 'mini' : p.nombre.includes('Pequeña') ? 'p' : p.nombre.includes('Mediana') ? 'm' : 'g';
                     html += `
                     <div class="product-card search-result">
                         <small style="color: var(--accent); font-size: 0.6rem;">🥘 PIZZA COMPLETA</small>
                         <h4>${p.nombre}</h4>
-                        <button class="btn-action" onclick="renderPizzaFlavorSelector('${dest}')">ELEGIR SABOR</button>
+                        <button class="btn-action" onclick="renderPizzaFlavorSelector('${dest}', '${tamClave}')">ELEGIR SABOR</button>
                     </div>`;
                 } else {
                     const ne = p.nombre.replace(/'/g, "\\'");
