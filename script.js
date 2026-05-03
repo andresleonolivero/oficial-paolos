@@ -1347,6 +1347,7 @@ function clearOrder(dest) {
         database.ref('paolos_ventas_actuales').push(nuevaVenta);
 
         Cuentas[dest] = [];
+        delete yaImpresoPorMesa[dest];
         syncCuentasToFirebase();
         metodoPagoSeleccionado = 'Efectivo';
         metodoPagoMixto = { activo: false, efectivo: 0, transferencia: 0 };
@@ -1861,14 +1862,38 @@ function prepararDatosYImprimir() {
 }
 
 // --- COMANDA DE COCINA ---
+// Guarda lo que ya se imprimió por destino (solo en memoria, se resetea al cerrar cuenta)
+const yaImpresoPorMesa = {};
+
 function imprimirComandaCocina(dest) {
     const items = Cuentas[dest] || [];
     if (items.length === 0) return alert("No hay productos para enviar a cocina");
 
+    // Contar todos los items actuales
     const grouped = items.reduce((acc, it) => {
         acc[it.nombre] = (acc[it.nombre] || 0) + 1;
         return acc;
     }, {});
+
+    // Contar lo que ya se imprimió antes
+    const yaImpreso = yaImpresoPorMesa[dest] || {};
+
+    // Solo los nuevos (diferencia)
+    const nuevos = {};
+    Object.keys(grouped).forEach(nombre => {
+        const cantNueva = grouped[nombre] - (yaImpreso[nombre] || 0);
+        if (cantNueva > 0) nuevos[nombre] = cantNueva;
+    });
+
+    if (Object.keys(nuevos).length === 0) {
+        return alert("No hay productos nuevos para enviar a cocina");
+    }
+
+    // Actualizar lo ya impreso
+    if (!yaImpresoPorMesa[dest]) yaImpresoPorMesa[dest] = {};
+    Object.keys(nuevos).forEach(nombre => {
+        yaImpresoPorMesa[dest][nombre] = (yaImpresoPorMesa[dest][nombre] || 0) + nuevos[nombre];
+    });
 
     const sep  = "-----------------------------\n";
     const hora = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
@@ -1883,8 +1908,8 @@ function imprimirComandaCocina(dest) {
     txt += "CANT  DESCRIPCION\n";
     txt += sep;
 
-    Object.keys(grouped).forEach(nombre => {
-        const cant = String(grouped[nombre]).padEnd(5);
+    Object.keys(nuevos).forEach(nombre => {
+        const cant = String(nuevos[nombre]).padEnd(5);
         const nom  = limpiarTextoImpresora(nombre).substring(0, 22).toUpperCase();
         txt += cant + " " + nom + "\n";
     });
