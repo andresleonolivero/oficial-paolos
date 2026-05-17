@@ -1357,7 +1357,12 @@ function clearOrder(dest) {
 
 function addItemToOrder(dest, nombre, precio, categoria = "otros") {
     if (!Cuentas[dest]) Cuentas[dest] = [];
-    Cuentas[dest].push({ nombre, precio, categoria });
+    Cuentas[dest].push({ 
+        id: Date.now() + Math.random(),
+        nombre, 
+        precio, 
+        categoria 
+    });
     guardarEstadoLocal();
     syncCuentasToFirebase();
     renderOrderSummary(dest);
@@ -1861,38 +1866,33 @@ function prepararDatosYImprimir() {
     setTimeout(() => imprimirConQZ(t4), 1500);
 }
 
-// --- COMANDA DE COCINA ---
-// Guarda lo que ya se imprimió por destino (solo en memoria, se resetea al cerrar cuenta)
+// --- COMANDA DE COCINA (CORREGIDA) ---
+// Guarda los IDs de items ya impresos por destino
 const yaImpresoPorMesa = {};
 
 function imprimirComandaCocina(dest) {
     const items = Cuentas[dest] || [];
     if (items.length === 0) return alert("No hay productos para enviar a cocina");
 
-    // Contar todos los items actuales
-    const grouped = items.reduce((acc, it) => {
-        acc[it.nombre] = (acc[it.nombre] || 0) + 1;
-        return acc;
-    }, {});
+    // Inicializar si no existe
+    if (!yaImpresoPorMesa[dest]) yaImpresoPorMesa[dest] = [];
 
-    // Contar lo que ya se imprimió antes
-    const yaImpreso = yaImpresoPorMesa[dest] || {};
+    // Encontrar items NUEVOS (que no han sido impresos aún)
+    const nuevos = items.filter(item => !yaImpresoPorMesa[dest].includes(item.id));
 
-    // Solo los nuevos (diferencia)
-    const nuevos = {};
-    Object.keys(grouped).forEach(nombre => {
-        const cantNueva = grouped[nombre] - (yaImpreso[nombre] || 0);
-        if (cantNueva > 0) nuevos[nombre] = cantNueva;
-    });
-
-    if (Object.keys(nuevos).length === 0) {
+    if (nuevos.length === 0) {
         return alert("No hay productos nuevos para enviar a cocina");
     }
 
-    // Actualizar lo ya impreso
-    if (!yaImpresoPorMesa[dest]) yaImpresoPorMesa[dest] = {};
-    Object.keys(nuevos).forEach(nombre => {
-        yaImpresoPorMesa[dest][nombre] = (yaImpresoPorMesa[dest][nombre] || 0) + nuevos[nombre];
+    // Agrupar los nuevos por nombre para la comanda
+    const agrupados = nuevos.reduce((acc, item) => {
+        acc[item.nombre] = (acc[item.nombre] || 0) + 1;
+        return acc;
+    }, {});
+
+    // Marcar estos items como ya impresos (por su ID)
+    nuevos.forEach(item => {
+        yaImpresoPorMesa[dest].push(item.id);
     });
 
     const sep  = "-----------------------------\n";
@@ -1908,8 +1908,8 @@ function imprimirComandaCocina(dest) {
     txt += "CANT  DESCRIPCION\n";
     txt += sep;
 
-    Object.keys(nuevos).forEach(nombre => {
-        const cant = String(nuevos[nombre]).padEnd(5);
+    Object.keys(agrupados).forEach(nombre => {
+        const cant = String(agrupados[nombre]).padEnd(5);
         const nom  = limpiarTextoImpresora(nombre).substring(0, 22).toUpperCase();
         txt += cant + " " + nom + "\n";
     });
